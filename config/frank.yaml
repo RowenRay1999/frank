@@ -1,0 +1,117 @@
+# Frank (弗兰克) 配置文件
+# 所有路径相对于项目根目录
+
+# 摄像头配置
+camera:
+  device_id: 0                # 默认摄像头设备 ID（0 = 系统默认）
+  width: 640                 # 采集分辨率宽度
+  height: 480                # 采集分辨率高度
+  fps_idle: 1                # Idle 状态帧率
+  fps_aware: 5               # Aware 状态帧率
+  fps_active: 10             # Auth/Chat 状态帧率
+  detection_confidence: 0.7  # 人脸检测置信度阈值 (0-1)
+
+# 麦克风配置
+microphone:
+  device_id: null            # 默认麦克风设备 ID（null = 系统默认）
+  sample_rate: 16000         # 采样率 (Hz)
+  chunk_size: 512            # 每次采集样本数 (~32ms @ 16kHz)
+  channels: 1                # 单声道
+  bits_per_sample: 16        # 位深
+  ring_buffer_seconds: 10    # 环形缓冲区时长 (秒)
+  pre_trigger_seconds: 1.5   # 触发前保留音频 (秒)
+  silence_threshold_ms: 800  # 静音判定阈值 (毫秒)
+
+# 唤醒词配置
+wake_word:
+  text: "Hey Frank"          # 唤醒词文本
+  model: "openwakeword"      # 唤醒词模型
+  confidence_threshold: 0.7  # 置信度阈值 (0-1)
+  face_cooldown_ms: 1000     # 唤醒词与人脸检测的重合窗口 (毫秒)
+
+# WebSocket 配置
+websocket:
+  host: "localhost"          # 绑定地址
+  port: 8765                 # 默认端口（冲突时自动递增）
+  port_max_retries: 15       # 端口递增上限次数 (8765 + 15 = 8780)
+  heartbeat_interval: 5      # 心跳间隔 (秒)
+  heartbeat_missed_max: 3    # 连续丢失心跳触发断连的阈值
+  reconnect_backoff: [1, 2, 4, 8, 16, 30]  # 重连退避策略 (秒)
+
+# 状态机配置
+state_machine:
+  timeout_aware_to_idle: 30   # Aware → Idle：无活动超时 (秒)
+  timeout_auth_delay: 2       # Aware → Auth：人脸持续确认时间 (秒)
+  timeout_chat_to_auth: 300   # Chat → Auth：对话静默超时 (秒, 5分钟)
+  timeout_auth_to_idle: 60    # Auth → Idle：无人脸超时 (秒)
+
+# 日志配置
+logging:
+  level: "INFO"              # DEBUG / INFO / WARNING / ERROR
+  file: "logs/frank.log"     # 日志文件路径
+  max_size_mb: 10            # 单个日志文件最大大小
+  backup_count: 3            # 保留的日志文件备份数
+  format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+
+# 应用配置
+app:
+  auto_start: true           # 开机自启（Windows 注册表 Run 键）
+  minimize_to_tray: true     # 关闭窗口时最小化到托盘
+  always_on_top: false       # 窗口是否默认置顶
+  language: "zh-CN"          # 界面语言
+
+# Phase 3: LLM 配置
+llm:
+  provider: "openai"         # openai / azure / ollama
+  model: "gpt-4o-mini"       # 模型名称
+  base_url: null             # Azure OpenAI 或自定义端点 URL
+  api_key_env: "FRANK_LLM_API_KEY"
+  timeout: 15                # 请求超时 (秒)
+  max_tokens: 1024           # 最大生成 token 数
+  temperature: 0.7           # 生成温度 (0-2)
+  max_history_rounds: 10     # 保留最近 N 轮对话历史
+
+# Phase 3: TTS 配置
+tts:
+  voice: "zh-CN-XiaoxiaoNeural"  # 默认语音 (edge-tts)
+  speed: 1.0                     # 语速 (0.5-2.0)
+  retry_count: 2                 # 失败重试次数
+
+# Phase 3: 免唤醒指令
+wakefree:
+  enabled: true
+  face_required: true           # 是否要求检测到人脸才触发
+  face_window_seconds: 2        # 人脸检测窗口 (秒)
+
+# Phase 3: 视觉意图
+visual_intent:
+  enabled: true
+  gaze_threshold: 10.0          # 注视角度阈值 (度)
+  gaze_duration: 2.0            # 注视持续时间 (秒)
+  nod_threshold: 0.015          # 点头位移阈值 (归一化)
+  shake_threshold: 0.015        # 摇头位移阈值 (归一化)
+
+# Phase 4: 多输出设备
+multi_output:
+  secondary_audio_device_id: null  # 副音频输出设备 ID (null=自动检测)
+  secondary_display_id: null       # 副显示器 ID
+
+# Phase 4: 任务管理
+tasks:
+  max_retries: 3                 # 最大重试次数
+  retry_backoff_base: 2          # 重试退避基数 (秒)
+  history_retention_hours: 24    # 任务历史保留时间
+
+# Phase 5: 姿态检测
+pose:
+  enabled: true
+  min_detection_confidence: 0.5
+  min_tracking_confidence: 0.5
+  model_complexity: 1            # 0/1/2, 越高越精确但越慢
+
+# Phase 5: 手势识别
+gesture:
+  enabled: true
+  dtw_threshold: 0.65            # DTW 匹配阈值 (0-1)
+  debounce_seconds: 3            # 同类型手势触发间隔 (秒)
+  window_frames: 30              # 滑动窗口帧数

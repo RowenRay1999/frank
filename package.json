@@ -1,0 +1,22 @@
+{
+  "name": "frank",
+  "version": "0.1.0",
+  "description": "弗兰克 (Frank) — 身份感知家庭工作助手",
+  "main": "src/electron/main/main.js",
+  "scripts": {
+    "dev": "node node_modules/electron/cli.js .",
+    "start": "node node_modules/electron/cli.js .",
+    "build": "node node_modules/electron-builder/cli.js",
+    "postinstall": "echo 'Run scripts/setup.bat for first-time setup'"
+  },
+  "author": "Rowen",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "ws": "^8.18.0",
+    "electron-store": "^10.0.0"
+  }
+}

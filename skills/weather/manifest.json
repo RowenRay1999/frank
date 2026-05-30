@@ -1,0 +1,1 @@
+{"name":"weather","display_name":"天气查询","version":"1.0.0","description":"查询指定城市的天气信息","trigger_keywords":["天气","温度","下雨","空气质量","穿衣","风"],"min_user_level":"guest","permissions":["network.http"],"estimated_runtime":"immediate","output_type":"text"}

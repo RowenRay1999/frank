@@ -1,0 +1,53 @@
+# Frank (弗兰克) — Git ignore
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+*.egg
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Electron
+out/
+release/
+
+# Build artifacts
+*.exe
+*.msi
+*.AppImage
+*.dmg
+
+# Logs
+logs/
+*.log
+
+# Runtime files
+.frank_port
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# Data
+data/
+
+# Env
+.env
+.env.local
+
+# Tests
+.coverage
+htmlcov/
+.pytest_cache/

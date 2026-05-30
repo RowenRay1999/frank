@@ -1,0 +1,43 @@
+# Frank - Python AI 推理服务依赖
+# Phase 1: 核心基础设施
+# Phase 2: 身份识别融合
+
+# 计算机视觉
+mediapipe==0.10.14
+opencv-python==4.10.0.84
+numpy==2.1.2
+
+# 深度学习框架
+torch>=2.5
+torchaudio
+onnxruntime==1.20.1
+
+# 人脸识别 (InsightFace) — 需要 MSVC 编译，用 >=1.0 的预编译 wheel
+insightface>=1.0
+
+# 声纹识别 (SpeechBrain) — 1.0.2 与新版 torchaudio 不兼容
+speechbrain>=1.1.0
+
+# 音频处理
+pyaudio==0.2.14
+
+# 语音活动检测
+silero-vad==5.1.0
+
+# 唤醒词检测
+openwakeword==0.5.1
+
+# WebSocket 通信
+websockets==13.1
+
+# 配置管理
+pyyaml==6.0.2
+
+# Phase 3: 对话智能
+faster-whisper>=1.0.3
+edge-tts>=6.1.0
+openai>=1.55.0
+aiohttp>=3.10.0
+
+# 工具
+python-dotenv==1.0.1

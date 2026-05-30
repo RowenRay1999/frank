@@ -2,6 +2,8 @@
   "enabledPlugins": {
     "superpowers@claude-plugins-official": true,
     "code-review@claude-plugins-official": true,
-    "microsoft-docs@claude-plugins-official": true
+    "microsoft-docs@claude-plugins-official": true,
+    "superpowers-lab@superpowers-marketplace": true,
+    "superpowers@superpowers-marketplace": true
   }
 }

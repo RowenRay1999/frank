@@ -1,0 +1,1 @@
+{"name":"schedule","display_name":"日程管理","version":"1.0.0","description":"管理用户的日程和提醒事项","trigger_keywords":["日程","会议","安排","提醒我","几点"],"min_user_level":"adult","permissions":["storage.local"],"estimated_runtime":"immediate","output_type":"text"}

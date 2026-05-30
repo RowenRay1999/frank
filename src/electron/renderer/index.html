@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
+  <title>Frank (弗兰克)</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- 自定义标题栏 -->
+  <div id="title-bar">
+    <div id="title-bar-left">
+      <span id="status-dot" class="status-idle"></span>
+      <span id="title-text">Frank - 待机中</span>
+    </div>
+    <div id="title-bar-right">
+      <button id="btn-always-on-top" class="title-btn" title="窗口置顶">📌</button>
+      <button id="btn-minimize" class="title-btn" title="最小化">─</button>
+      <button id="btn-expand" class="title-btn" title="展开/收起">⛶</button>
+      <button id="btn-close" class="title-btn title-btn-close" title="关闭到托盘">✕</button>
+    </div>
+  </div>
+
+  <!-- 欢迎卡片 -->
+  <div id="welcome-card">
+    <h2 id="greeting">下午好，需要我做些什么？</h2>
+    <p id="hint-text">说一声 "Hey Frank" 来唤醒我</p>
+  </div>
+
+  <!-- 对话区域 -->
+  <div id="chat-area">
+    <div id="message-list"></div>
+  </div>
+
+  <!-- 输入区域 -->
+  <div id="input-area">
+    <div id="input-status">语音监听中...</div>
+  </div>
+
+  <!-- 底部工具栏 -->
+  <div id="toolbar">
+    <button id="btn-tasks" class="toolbar-btn" title="任务看板">📋 任务</button>
+    <button id="btn-members" class="toolbar-btn" title="成员管理">👥 成员</button>
+    <button id="btn-settings" class="toolbar-btn" title="设置">⚙ 设置</button>
+  </div>
+
+  <!-- 设置面板占位 -->
+  <div id="settings-panel" class="panel hidden">
+    <div class="panel-header">
+      <h3>设置</h3>
+      <button class="panel-close">✕</button>
+    </div>
+    <div class="panel-content">
+      <p class="placeholder-text">设置功能将在后续版本中开放</p>
+    </div>
+  </div>
+
+  <!-- 错误提示弹出 -->
+  <div id="error-toast" class="toast hidden">
+    <span id="error-message"></span>
+    <button id="error-close" class="toast-close">✕</button>
+  </div>
+
+  <!-- Phase 5: 手势浮层提示 -->
+  <div id="gesture-toast" class="gesture-toast hidden">
+    <span id="gesture-icon" class="gesture-icon"></span>
+    <span id="gesture-text"></span>
+  </div>
+
+  <!-- Phase 5: 暂停横幅 -->
+  <div id="pause-banner" class="pause-banner hidden">
+    <span>⏸️ 对话已暂停 — 再次举手即可恢复</span>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

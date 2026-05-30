@@ -1,0 +1,1 @@
+{"name":"reminder","display_name":"提醒","version":"1.0.0","description":"设置定时提醒","trigger_keywords":["提醒","闹钟","叫我","别忘了","记得"],"min_user_level":"guest","permissions":["storage.local","system.notification"],"estimated_runtime":"managed","output_type":"text"}
