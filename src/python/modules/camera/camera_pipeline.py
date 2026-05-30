@@ -21,9 +21,8 @@ import numpy as np
 
 logger = logging.getLogger('frank.camera')
 
-# MediaPipe（回退方案）
-import mediapipe as mp
-mp_face_detection = mp.solutions.face_detection
+# MediaPipe（回退方案）— 延迟导入，避免依赖缺失时模块导入崩溃
+mp_face_detection = None
 
 # InsightFace 延迟导入
 _insightface = None
@@ -59,6 +58,8 @@ class CameraPipeline:
         self._current_fps = self.fps_idle
         self._frame_interval = 1.0 / self.fps_idle
         self._init_task: asyncio.Task | None = None
+        self._no_face_frames = 0  # WR-06: debounce face_lost
+        self._last_error_time: dict[str, float] = {}  # WR-07: error debounce
 
         # 回调
         self._on_face_detected: Callable | None = None
@@ -162,11 +163,18 @@ class CameraPipeline:
         self._cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
         self._cap.set(cv2.CAP_PROP_FPS, 30)
 
-        # 初始化 MediaPipe（回退）
-        self._face_detector = mp_face_detection.FaceDetection(
-            model_selection=0,
-            min_detection_confidence=self.detection_confidence,
-        )
+        # 初始化 MediaPipe（回退，延迟导入避免崩溃）
+        try:
+            import mediapipe as mp
+            global mp_face_detection
+            mp_face_detection = mp.solutions.face_detection
+            self._face_detector = mp_face_detection.FaceDetection(
+                model_selection=0,
+                min_detection_confidence=self.detection_confidence,
+            )
+        except Exception as e:
+            logger.warning(f'MediaPipe init failed, face detection degraded: {e}')
+            self._face_detector = None
 
         # 异步加载 InsightFace（不阻塞启动）
         self._init_task = asyncio.create_task(self._init_insightface())
@@ -236,9 +244,12 @@ class CameraPipeline:
 
                 # 读取帧
                 if not self._cap or not self._cap.isOpened():
-                    await self._emit_error('CAM_DISCONNECTED',
-                        '摄像头连接中断，正在尝试恢复...', True,
-                        '请检查摄像头连接，系统将自动尝试重新连接')
+                    now = time.time()
+                    if now - self._last_error_time.get('CAM_DISCONNECTED', 0) > 5:
+                        await self._emit_error('CAM_DISCONNECTED',
+                            '摄像头连接中断，正在尝试恢复...', True,
+                            '请检查摄像头连接，系统将自动尝试重新连接')
+                        self._last_error_time['CAM_DISCONNECTED'] = now
                     await asyncio.sleep(2)
                     continue
 
@@ -261,7 +272,12 @@ class CameraPipeline:
                 if current_count > 0 and self._faces_last_frame == 0:
                     await self._emit_face_detected(faces)
                 elif current_count == 0 and self._faces_last_frame > 0:
-                    await self._emit_face_lost()
+                    self._no_face_frames += 1
+                    if self._no_face_frames >= 3:  # debounce: 3 consecutive frames
+                        await self._emit_face_lost()
+                        self._no_face_frames = 0
+                elif current_count > 0:
+                    self._no_face_frames = 0
 
                 self._faces_last_frame = current_count
 
@@ -314,6 +330,8 @@ class CameraPipeline:
 
     def _detect_with_mediapipe(self, frame_rgb: np.ndarray) -> list[dict]:
         """MediaPipe 回退检测（无 embedding）"""
+        if self._face_detector is None:
+            return []
         faces = []
         try:
             results = self._face_detector.process(frame_rgb)

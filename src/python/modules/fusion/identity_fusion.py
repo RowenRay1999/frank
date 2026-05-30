@@ -90,6 +90,9 @@ class IdentityFusionEngine:
         self._process_task: asyncio.Task | None = None
         self._last_face_event_time = 0.0
         self._last_voice_event_time = 0.0
+        self._last_evaluated = 0.0  # WR-08: track last evaluation time
+        self._last_active_update = 0.0  # WR-10: throttle update_member calls
+        self._last_face_embedding: np.ndarray | None = None  # 最近人脸嵌入（供自动发现使用）
         self._unidentified_cooldown: dict[str, float] = {}  # embedding_hash → last_seen
 
         # 回调
@@ -118,6 +121,8 @@ class IdentityFusionEngine:
         """接收人脸 embedding 证据"""
         if not self._running:
             return
+
+        self._last_face_embedding = embedding  # 保存原始嵌入供自动发现使用
 
         matches = search_by_face_embedding(embedding, top_n=1)
         ev = ModalityEvidence(
@@ -219,6 +224,10 @@ class IdentityFusionEngine:
                 new_state.role = member.get('role', 'guest')
                 new_state.display_name = member.get('display_name', new_state.display_name)
 
+        # 证据累积门控：未达到最小证据数时降级为暂确认
+        if new_state.evidence_count < self.EVIDENCE_MIN_COUNT and new_state.status == IdentityStatus.CONFIRMED:
+            new_state.status = IdentityStatus.TENTATIVE
+
         return new_state
 
     # ─── 自动发现 ───────────────────────────────────────
@@ -273,11 +282,12 @@ class IdentityFusionEngine:
         while self._running:
             try:
                 # 检查是否有新证据
-                has_new = len(self._face_queue) > 0 or len(self._voice_queue) > 0
-                has_new = has_new and (time.time() - self._state.last_updated > 0.3)
+                has_new = (self._last_face_event_time > self._last_evaluated or
+                           self._last_voice_event_time > self._last_evaluated)
 
                 if has_new:
                     new_state = self._evaluate()
+                    self._last_evaluated = time.time()
 
                     # 身份变更检测
                     if self._state.status == IdentityStatus.CONFIRMED and \
@@ -296,9 +306,12 @@ class IdentityFusionEngine:
                         case IdentityStatus.CONFIRMED:
                             if old_status != IdentityStatus.CONFIRMED:
                                 await self._emit_identity_confirmed(self._state_to_dict())
-                            # 更新最后活跃时间
+                            # 更新最后活跃时间（限频：最多每 60 秒一次）
                             if new_state.member_id:
-                                update_member(new_state.member_id, last_active_at=datetime.now(timezone.utc).isoformat())
+                                now = time.time()
+                                if now - self._last_active_update > 60:
+                                    update_member(new_state.member_id, last_active_at=datetime.now(timezone.utc).isoformat())
+                                    self._last_active_update = now
 
                         case IdentityStatus.CONFLICT | IdentityStatus.TENTATIVE:
                             # 暂确认：等待更多证据
@@ -310,6 +323,11 @@ class IdentityFusionEngine:
                         case IdentityStatus.UNKNOWN:
                             if old_status != IdentityStatus.UNKNOWN:
                                 await self._emit_identity_unknown({})
+                            # 自动发现：尝试匹配或创建未标识访客记录
+                            if new_state.face_evidence.is_valid and new_state.face_evidence.member_id is None:
+                                face_emb = self._last_face_embedding
+                                if face_emb is not None:
+                                    self._check_auto_discovery(face_emb)
 
                 # 检查超时
                 if self._state.status == IdentityStatus.TENTATIVE and self._state.tentative_since:

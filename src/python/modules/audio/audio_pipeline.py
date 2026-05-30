@@ -117,6 +117,7 @@ class AudioPipeline:
         self._stream = None
         self._pyaudio = None
         self._process_thread: threading.Thread | None = None
+        self._main_loop = None  # 主事件循环引用（后台线程安全调度用）
 
         # 回调
         self._on_voice_start: Callable | None = None
@@ -205,8 +206,9 @@ class AudioPipeline:
         # 初始化唤醒词
         try:
             from openwakeword import Model
-            self._wake_word_model = Model(wakeword_models=[self.wake_word_text], inference_framework='onnx')
-            logger.info(f'OpenWakeWord model loaded: "{self.wake_word_text}"')
+            wake_model_name = self.wake_word_config.get('model', 'hey_jarvis')
+            self._wake_word_model = Model(wakeword_models=[wake_model_name], inference_framework='onnx')
+            logger.info(f'OpenWakeWord model loaded: "{wake_model_name}"')
         except Exception as e:
             logger.warning(f'OpenWakeWord load failed: {e}, wake word detection disabled')
             self._wake_word_model = None
@@ -243,6 +245,7 @@ class AudioPipeline:
             raise RuntimeError(f'Mic open failed: {e}')
 
         self._running = True
+        self._main_loop = asyncio.get_running_loop()
         self._stream.start_stream()
 
         # 启动处理线程
@@ -268,6 +271,7 @@ class AudioPipeline:
         self._ring_buffer = None
         self._vad_model = None
         self._wake_word_model = None
+        self._main_loop = None
 
         logger.info('Audio pipeline stopped')
 
@@ -371,10 +375,15 @@ class AudioPipeline:
                 self._silence_start = None
                 self._speech_start_time = time.time()
                 self._speech_buffer = [chunk] if self._ring_buffer else []
-                asyncio.run_coroutine_threadsafe(
-                    self._emit_voice_start({'speech_probability': speech_prob}),
-                    asyncio.get_event_loop() if asyncio.get_event_loop().is_running() else None
-                ) if asyncio.get_event_loop().is_running() else None
+                if self._main_loop and self._main_loop.is_running():
+                    future = asyncio.run_coroutine_threadsafe(
+                        self._emit_voice_start({'speech_probability': speech_prob}),
+                        self._main_loop
+                    )
+                    future.add_done_callback(
+                        lambda f: logger.error(f'Callback error: {f.exception()}') if f.exception() else None
+                    )
+
 
         elif not is_speech and self._voice_active:
             if self._silence_start is None:
@@ -384,15 +393,15 @@ class AudioPipeline:
                 self._silence_start = None
                 # 提取声纹
                 self._try_extract_voiceprint()
-                try:
-                    loop = asyncio.get_event_loop()
-                    if loop.is_running():
-                        asyncio.run_coroutine_threadsafe(
-                            self._emit_voice_end({}),
-                            loop
-                        )
-                except RuntimeError:
-                    pass
+                if self._main_loop and self._main_loop.is_running():
+                    future = asyncio.run_coroutine_threadsafe(
+                        self._emit_voice_end({}),
+                        self._main_loop
+                    )
+                    future.add_done_callback(
+                        lambda f: logger.error(f'Callback error: {f.exception()}') if f.exception() else None
+                    )
+
 
     # ─── 声纹提取 (Phase 2) ────────────────────────────
 
@@ -412,6 +421,7 @@ class AudioPipeline:
             return
 
         # 质量门控：SNR（简单能量比估计）
+        snr = 0.0  # safe default
         try:
             energy = np.mean(speech ** 2)
             if energy < 1e-6:
@@ -445,15 +455,15 @@ class AudioPipeline:
             logger.debug(f'Voiceprint extracted: duration={duration:.1f}s, SNR={snr:.1f}dB')
 
             # 推送到回调
-            try:
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    asyncio.run_coroutine_threadsafe(
-                        self._emit_voiceprint({'embedding': emb_np.tolist(), 'duration': duration}),
-                        loop
-                    )
-            except RuntimeError:
-                pass
+            if self._main_loop and self._main_loop.is_running():
+                future = asyncio.run_coroutine_threadsafe(
+                    self._emit_voiceprint({'embedding': emb_np.tolist(), 'duration': duration}),
+                    self._main_loop
+                )
+                future.add_done_callback(
+                    lambda f: logger.error(f'Callback error: {f.exception()}') if f.exception() else None
+                )
+
 
         except Exception as e:
             logger.error(f'Voiceprint extraction error: {e}')
@@ -481,22 +491,25 @@ class AudioPipeline:
             for model_name, score in predictions.items():
                 if score > self.wake_word_confidence:
                     logger.info(f'Wake word "{model_name}" detected! Confidence: {score:.3f}')
-                    try:
-                        loop = asyncio.get_event_loop()
-                        if loop.is_running():
-                            asyncio.run_coroutine_threadsafe(
-                                self._emit_wake_word({'text': model_name, 'confidence': float(score)}),
-                                loop
+                    if self._main_loop and self._main_loop.is_running():
+                        future = asyncio.run_coroutine_threadsafe(
+                            self._emit_wake_word({'text': model_name, 'confidence': float(score)}),
+                            self._main_loop
+                        )
+                        future.add_done_callback(
+                            lambda f: logger.error(f'Callback error: {f.exception()}') if f.exception() else None
+                        )
+                        # Phase 3: STT trigger — extract audio segment + send to STT
+                        if self._on_stt_trigger:
+                            audio_segment = self._ring_buffer.get_segment(self.pre_trigger_seconds)
+                            future2 = asyncio.run_coroutine_threadsafe(
+                                self._on_stt_trigger(audio_segment),
+                                self._main_loop
                             )
-                            # Phase 3: STT trigger — extract audio segment + send to STT
-                            if self._on_stt_trigger:
-                                audio_segment = self._ring_buffer.get_segment(self.pre_trigger_seconds)
-                                asyncio.run_coroutine_threadsafe(
-                                    self._on_stt_trigger(audio_segment),
-                                    loop
-                                )
-                    except RuntimeError:
-                        pass
+                            future2.add_done_callback(
+                                lambda f: logger.error(f'Callback error: {f.exception()}') if f.exception() else None
+                            )
+
         except Exception as e:
             logger.debug(f'Wake word detection error: {e}')
 

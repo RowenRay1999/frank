@@ -138,15 +138,20 @@ class OllamaProvider(LLMProvider):
             }
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, json=payload, timeout=self.timeout) as resp:
-                    async for line in resp.content:
-                        if line:
-                            try:
-                                data = json.loads(line)
-                                content = data.get('message', {}).get('content', '')
-                                if content:
-                                    yield content
-                            except json.JSONDecodeError:
-                                continue
+                    buffer = b''
+                    async for chunk in resp.content:
+                        buffer += chunk
+                        while b'\n' in buffer:
+                            line, buffer = buffer.split(b'\n', 1)
+                            line = line.strip()
+                            if line:
+                                try:
+                                    data = json.loads(line)
+                                    content = data.get('message', {}).get('content', '')
+                                    if content:
+                                        yield content
+                                except json.JSONDecodeError:
+                                    continue
         except Exception as e:
             logger.error(f'Ollama stream error: {e}')
 
@@ -233,9 +238,11 @@ class LLMManager:
         display_name = identity.get('display_name', '用户')
 
         # 推断称呼
-        if role in ('adult', 'owner'):
+        honorific_map = {'owner': '主人', 'child': '', 'guest': '访客'}
+        honorific = honorific_map.get(role, '')
+        if role == 'adult':
             honorific = f'{display_name}先生' if '女士' not in display_name else display_name
-        else:
+        elif not honorific:
             honorific = display_name
 
         return SYSTEM_PROMPT_TEMPLATE.format(
@@ -309,8 +316,6 @@ class LLMManager:
                     self._on_token({'token': token, 'partial': full_response})
                 await asyncio.sleep(0)  # 让出控制权
 
-            if self._on_response:
-                self._on_response({'text': full_response, 'streaming': True})
             return full_response
 
         except Exception as e:

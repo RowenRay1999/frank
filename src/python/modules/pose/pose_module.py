@@ -10,11 +10,11 @@ Frank 姿态/手势识别模块 (Phase 5)
 import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
 import numpy as np
 
+from .pose_types import PoseFrame, GestureEvent
 from .gesture_classifier import GestureClassifier
 
 logger = logging.getLogger('frank.pose')
@@ -22,24 +22,6 @@ logger = logging.getLogger('frank.pose')
 # MediaPipe lazy import
 _mp_pose = None
 _mp_hands_pose = None
-
-
-@dataclass
-class PoseFrame:
-    """单帧姿态数据"""
-    body_landmarks: np.ndarray | None = None       # shape (33, 4) — 33 关键点 (x, y, z, visibility)
-    left_hand_landmarks: np.ndarray | None = None   # shape (21, 3) — 左手关键点
-    right_hand_landmarks: np.ndarray | None = None  # shape (21, 3) — 右手关键点
-    frame_timestamp: float = 0.0                     # 时间戳（秒）
-
-
-@dataclass
-class GestureEvent:
-    """识别到的手势事件"""
-    gesture_type: str = "none"          # "raise_hand"|"point"|"wave"|"come_closer"|"custom"|"none"
-    confidence: float = 0.0             # 0.0 - 1.0
-    gesture_id: Optional[str] = None    # 自定义手势 ID，custom 类型必填
-    direction: Optional[dict] = None    # 指向方向（point 手势）
 
 
 class PoseModule:

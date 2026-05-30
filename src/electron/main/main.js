@@ -16,21 +16,22 @@ let wsReconnectAttempt = 0;
 let config = null;
 let currentState = { name: 'Idle', timeInState: 0 };
 let currentIdentity = null;  // Phase 2
+let trayUpdateInterval = null;  // WR-03: track for cleanup
 
 // ─── 开机自启 ────────────────────────────────────────────
 function setAutoStart(enabled) {
   // Windows: HKCU\Software\Microsoft\Windows\CurrentVersion\Run
   try {
-    const { execSync } = require('child_process');
+    const { spawnSync } = require('child_process');
     const appPath = process.execPath;
     const regKey = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run';
     const regValue = 'Frank';
 
     if (enabled) {
-      execSync(`reg add "${regKey}" /v ${regValue} /t REG_SZ /d "${appPath}" /f`);
+      spawnSync('reg', ['add', regKey, '/v', regValue, '/t', 'REG_SZ', '/d', appPath, '/f']);
       console.log('[Frank] Auto-start enabled');
     } else {
-      execSync(`reg delete "${regKey}" /v ${regValue} /f 2>nul`);
+      spawnSync('reg', ['delete', regKey, '/v', regValue, '/f']);
       console.log('[Frank] Auto-start disabled');
     }
   } catch (err) {
@@ -130,12 +131,11 @@ function connectWebSocket() {
 
 function scheduleReconnect() {
   if (wsReconnectTimer) return;
-  const backoff = config.websocket?.reconnect_backoff || [1, 2, 4, 8, 16, 30];
-  // 安全兜底：确保 backoff 是数组且不为空
-  if (!Array.isArray(backoff) || backoff.length === 0) {
+  let safeBackoff = config.websocket?.reconnect_backoff;
+  if (!Array.isArray(safeBackoff) || safeBackoff.length === 0) {
     console.warn('[Frank] Invalid reconnect_backoff config, using defaults');
+    safeBackoff = [1, 2, 4, 8, 16, 30];
   }
-  const safeBackoff = (Array.isArray(backoff) && backoff.length > 0) ? backoff : [1, 2, 4, 8, 16, 30];
   const delayMs = (safeBackoff[Math.min(wsReconnectAttempt, safeBackoff.length - 1)] || 1) * 1000;
   console.log(`[Frank] Reconnecting in ${delayMs / 1000}s (attempt ${wsReconnectAttempt + 1})...`);
   wsReconnectTimer = setTimeout(() => {
@@ -316,6 +316,7 @@ function createWindow() {
   mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
 
   mainWindow.on('close', (event) => {
+    if (app.isQuitting) return;
     if (config.app?.minimize_to_tray !== false) {
       event.preventDefault();
       mainWindow.hide();
@@ -401,7 +402,7 @@ function createTray() {
   });
 
   // 定期更新托盘菜单中的状态
-  setInterval(() => {
+  trayUpdateInterval = setInterval(() => {
     if (tray) {
       const updatedMenu = Menu.buildFromTemplate([
         {
@@ -473,6 +474,10 @@ app.on('window-all-closed', () => {
 app.on('before-quit', () => {
   app.isQuitting = true;
   stopHeartbeat();
+  if (trayUpdateInterval) {
+    clearInterval(trayUpdateInterval);
+    trayUpdateInterval = null;
+  }
   if (wsConnection) {
     wsConnection.close();
   }

@@ -117,9 +117,8 @@ class StateMachine:
 
             case 'wake_word':
                 self._wake_word_detected = True
-                if self._state in (State.AUTH, State.CHAT):
-                    self._last_activity_at = time.time()
-                    self._do_transition(State.CHAT, 'wake_word')
+                self._last_activity_at = time.time()
+                self._do_transition(State.CHAT, 'wake_word')
 
             case 'identity_confirmed':
                 # Phase 2: 融合引擎确认身份 → 进入 Auth
@@ -172,10 +171,11 @@ class StateMachine:
             except Exception as e:
                 logger.error(f'State change callback error: {e}')
 
-        # 启动或重启超时监控
-        if not self._running:
-            self._running = True
-            self._timeout_task = asyncio.create_task(self._timeout_monitor())
+        # 取消旧超时监控并启动新的，防止重复任务竞态
+        if self._timeout_task and not self._timeout_task.done():
+            self._timeout_task.cancel()
+        self._running = True
+        self._timeout_task = asyncio.create_task(self._timeout_monitor())
 
         return transition_info
 

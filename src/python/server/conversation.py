@@ -58,7 +58,10 @@ class ConversationOrchestrator:
         self._sub_state = new_state
         logger.debug(f'Chat sub-state: {old.value} → {new_state.value}')
         if self._on_sub_state_change:
-            self._on_sub_state_change({'from': old.value, 'to': new_state.value})
+            if asyncio.iscoroutinefunction(self._on_sub_state_change):
+                await self._on_sub_state_change({'from': old.value, 'to': new_state.value})
+            else:
+                self._on_sub_state_change({'from': old.value, 'to': new_state.value})
 
     async def handle_wake_word(self):
         """唤醒词命中 → 进入对话循环"""
@@ -76,6 +79,10 @@ class ConversationOrchestrator:
 
         transcription = None
         if self._stt_module:
+            if hasattr(self._stt_module, 'is_ready') and not self._stt_module.is_ready:
+                logger.warning('STT module not ready yet, skipping transcription')
+                await self._change_sub_state(ChatSubState.LISTENING)
+                return
             transcription = await self._stt_module.transcribe(audio_np, sample_rate)
 
         if not transcription or not transcription.get('text'):
@@ -86,7 +93,10 @@ class ConversationOrchestrator:
         logger.info(f'User said: "{text}"')
 
         if self._on_user_message:
-            self._on_user_message({'text': text})
+            if asyncio.iscoroutinefunction(self._on_user_message):
+                await self._on_user_message({'text': text})
+            else:
+                self._on_user_message({'text': text})
 
         # 2. 免唤醒指令检查
         if self._wakefree_manager:
@@ -108,7 +118,10 @@ class ConversationOrchestrator:
             return
 
         if self._on_assistant_message:
-            self._on_assistant_message({'text': response})
+            if asyncio.iscoroutinefunction(self._on_assistant_message):
+                await self._on_assistant_message({'text': response})
+            else:
+                self._on_assistant_message({'text': response})
 
         # 4. TTS 朗读
         if response and self._tts_module:
@@ -124,7 +137,10 @@ class ConversationOrchestrator:
             return
 
         if self._on_user_message:
-            self._on_user_message({'text': text})
+            if asyncio.iscoroutinefunction(self._on_user_message):
+                await self._on_user_message({'text': text})
+            else:
+                self._on_user_message({'text': text})
 
         # 免唤醒指令检查
         if self._wakefree_manager:
@@ -140,7 +156,10 @@ class ConversationOrchestrator:
             response = await self._llm_manager.chat(text, self._current_identity, stream=True)
 
         if response and self._on_assistant_message:
-            self._on_assistant_message({'text': response})
+            if asyncio.iscoroutinefunction(self._on_assistant_message):
+                await self._on_assistant_message({'text': response})
+            else:
+                self._on_assistant_message({'text': response})
 
         if response and self._tts_module:
             await self._change_sub_state(ChatSubState.SPEAKING)

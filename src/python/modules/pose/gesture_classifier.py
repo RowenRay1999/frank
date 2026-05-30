@@ -15,7 +15,7 @@ from typing import Optional
 
 import numpy as np
 
-from .pose_module import PoseFrame, GestureEvent
+from .pose_types import PoseFrame, GestureEvent
 
 logger = logging.getLogger('frank.pose.classifier')
 
@@ -50,10 +50,15 @@ class GestureClassifier:
         self._wrist_x_history: list[float] = []
         self._wrist_direction_changes = 0
 
-        # 走近辅助状态
+        # 走近辅助状态（使用肩宽变化替代 Z 坐标）
         self._nose_z_start: float | None = None
         self._face_area_start: float | None = None
         self._approach_start_time: float | None = None
+
+        # 自定义手势缓存 (WR-12)
+        self._gesture_cache: list | None = None
+        self._cache_dirty = True
+
 
     # ─── 帧处理 ──────────────────────────────────────────
 
@@ -254,29 +259,39 @@ class GestureClassifier:
     # ─── 走近检测 ────────────────────────────────────────
 
     def _detect_come_closer(self, sequence: list[PoseFrame]) -> Optional[GestureEvent]:
-        """检测走近：鼻尖 Z 深度减小 > 0.1 持续 >= 1s"""
-        z_vals = []
+        """检测走近：肩宽（两肩距离）增大表示人靠近相机，持续 >= 0.5s"""
+        scale_vals = []
         for f in sequence[-self.window_frames:]:
-            if f.body_landmarks is not None and f.body_landmarks[POSE_NOSE, 3] > 0.5:
-                z_vals.append((f.body_landmarks[POSE_NOSE, 2], f.frame_timestamp))
+            if f.body_landmarks is None:
+                continue
+            left_vis = f.body_landmarks[POSE_LEFT_SHOULDER, 3]
+            right_vis = f.body_landmarks[POSE_RIGHT_SHOULDER, 3]
+            if left_vis < 0.5 or right_vis < 0.5:
+                continue
+            # 肩宽 = 左右肩在归一化坐标中的距离（人越近，肩宽越大）
+            dx = f.body_landmarks[POSE_RIGHT_SHOULDER, 0] - f.body_landmarks[POSE_LEFT_SHOULDER, 0]
+            dy = f.body_landmarks[POSE_RIGHT_SHOULDER, 1] - f.body_landmarks[POSE_LEFT_SHOULDER, 1]
+            shoulder_width = np.sqrt(dx * dx + dy * dy)
+            scale_vals.append((shoulder_width, f.frame_timestamp))
 
-        if len(z_vals) < 15:
+        if len(scale_vals) < 15:
             return None
 
-        # 检查 Z 深度是否持续减小（走近）
-        first_z = z_vals[0][0]
-        last_z = z_vals[-1][0]
-        duration = z_vals[-1][1] - z_vals[0][1]
+        # 对比窗口首尾的肩宽
+        first_half = scale_vals[:len(scale_vals)//2]
+        second_half = scale_vals[len(scale_vals)//2:]
+        first_avg = sum(s[0] for s in first_half) / len(first_half)
+        second_avg = sum(s[0] for s in second_half) / len(second_half)
+        duration = scale_vals[-1][1] - scale_vals[0][1]
 
         if duration < 0.5:
             return None
 
-        # Z 减小（负值更小 = 更近）
-        z_change = first_z - last_z
-        if z_change > 0.03:  # 归一化坐标中的显著变化
+        # 肩宽增大 > 8% 表示走近
+        if first_avg > 0 and second_avg / first_avg > 1.08:
             return GestureEvent(
                 gesture_type='come_closer',
-                confidence=min(1.0, z_change * 10),
+                confidence=min(1.0, (second_avg / first_avg - 1.0) * 10),
             )
         return None
 
@@ -350,12 +365,13 @@ class GestureClassifier:
                 (gesture_id, member_id, name, template.tobytes())
             )
 
+        self._cache_dirty = True  # WR-12: invalidate cache
         logger.info(f'Custom gesture registered: {name} (id={gesture_id[:8]}...)')
         return gesture_id
 
     def match_custom_gesture(self, sequence: list[PoseFrame]) -> Optional[GestureEvent]:
         """匹配已注册的自定义手势"""
-        from src.python.shared.database import get_connection, deserialize_embedding
+        from src.python.shared.database import get_connection
 
         features = self._sequence_to_feature(sequence)
         if features is None or len(features) < 10:
@@ -364,8 +380,11 @@ class GestureClassifier:
         # 取当前序列的平均特征
         query = np.mean(features, axis=0)
 
-        with get_connection() as conn:
-            rows = conn.execute("SELECT * FROM custom_gestures").fetchall()
+        if self._cache_dirty:
+            with get_connection() as conn:
+                self._gesture_cache = conn.execute("SELECT * FROM custom_gestures").fetchall()
+            self._cache_dirty = False
+        rows = self._gesture_cache or []
 
         best_score = 0.0
         best_gesture = None
@@ -398,6 +417,7 @@ class GestureClassifier:
         """删除自定义手势"""
         from src.python.shared.database import get_connection
 
+        self._cache_dirty = True  # WR-12: invalidate cache
         with get_connection() as conn:
             conn.execute("DELETE FROM custom_gestures WHERE id = ?", (gesture_id,))
         logger.info(f'Custom gesture deleted: {gesture_id[:8]}...')

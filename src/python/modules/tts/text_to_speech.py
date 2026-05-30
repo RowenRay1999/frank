@@ -7,6 +7,7 @@ edge-tts: 免费 Microsoft Edge TTS，中文自然度高
 import asyncio
 import io
 import logging
+import os
 import tempfile
 from typing import Any, Callable
 
@@ -46,6 +47,8 @@ class TextToSpeech:
         if self._on_start:
             self._on_start({'text': text[:50]})
 
+        tmp_path = None
+
         for attempt in range(retry_count + 1):
             try:
                 import edge_tts
@@ -59,10 +62,11 @@ class TextToSpeech:
 
                 # 流式保存到临时文件
                 with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as tmp:
+                    tmp_path = tmp.name
                     await communicate.save(tmp.name)
 
                 # 播放
-                await self._play_audio(tmp.name)
+                await self._play_audio(tmp_path)
 
                 if self._on_complete:
                     self._on_complete({'text': text[:50]})
@@ -76,23 +80,36 @@ class TextToSpeech:
                     if self._on_unavailable:
                         self._on_unavailable({'reason': str(e)})
                 await asyncio.sleep(0.5)
+            finally:
+                if tmp_path and os.path.exists(tmp_path):
+                    try:
+                        os.unlink(tmp_path)
+                        tmp_path = None
+                    except OSError:
+                        pass
 
         self._speaking = False
         return False
 
     async def _play_audio(self, file_path: str):
         """播放音频文件"""
+        loop = asyncio.get_running_loop()
         try:
-            # Windows: 使用 winsound 或 playsound
             import platform
             if platform.system() == 'Windows':
-                import winsound
-                winsound.PlaySound(file_path, winsound.SND_FILENAME)
+                try:
+                    from playsound import playsound
+                    await loop.run_in_executor(None, playsound, file_path)
+                except Exception:
+                    # fallback to winsound for WAV files
+                    import winsound
+                    await loop.run_in_executor(None, lambda: winsound.PlaySound(file_path, winsound.SND_FILENAME))
             else:
                 # Linux/macOS: 使用系统命令
                 import subprocess
-                subprocess.run(['ffplay', '-nodisp', '-autoexit', file_path],
-                               capture_output=True, timeout=30)
+                await loop.run_in_executor(None, lambda: subprocess.run(
+                    ['ffplay', '-nodisp', '-autoexit', file_path],
+                    capture_output=True, timeout=30))
         except Exception as e:
             logger.error(f'Audio playback error: {e}')
             raise

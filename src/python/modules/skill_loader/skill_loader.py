@@ -17,6 +17,24 @@ from typing import Any, Callable
 logger = logging.getLogger('frank.skills')
 
 
+def _run_skill_subprocess(path, params_json, q):
+    """在子进程中运行技能 handler（模块级函数，支持 Windows spawn）"""
+    import json
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('skill_handler', path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        if hasattr(module, 'execute'):
+            result = module.execute(json.loads(params_json))
+            q.put({'success': True, 'result': result})
+        else:
+            q.put({'success': False, 'error': 'No execute() function'})
+    except Exception as e:
+        q.put({'success': False, 'error': str(e)})
+
+
 class SkillPlugin:
     """技能插件"""
 
@@ -114,6 +132,12 @@ class SkillLoader:
         min_level = manifest.get('min_user_level', 'guest')
         max_timeout = min(timeout, 30 * 60 if manifest.get('estimated_runtime') == 'managed' else 10)
 
+        # 权限校验：检查当前用户角色是否满足技能要求的最低角色等级
+        role = params.get('role', 'guest')
+        role_levels = {'owner': 3, 'adult': 2, 'child': 1, 'guest': 0}
+        if role_levels.get(role, 0) < role_levels.get(min_level, 0):
+            return {'error': f'Permission denied: requires min_user_level={min_level}, current role={role}'}
+
         handler_path = skill.dir / 'handler.py'
         if not handler_path.exists():
             return {'error': f'No handler.py for skill: {skill_name}'}
@@ -122,24 +146,8 @@ class SkillLoader:
             # 子进程执行
             result_queue: multiprocessing.Queue = multiprocessing.Queue()
 
-            def _run_in_subprocess(path, params_json, q):
-                """在子进程中运行"""
-                try:
-                    import importlib.util
-                    spec = importlib.util.spec_from_file_location('skill_handler', path)
-                    module = importlib.util.module_from_spec(spec)
-                    spec.loader.exec_module(module)
-
-                    if hasattr(module, 'execute'):
-                        result = module.execute(json.loads(params_json))
-                        q.put({'success': True, 'result': result})
-                    else:
-                        q.put({'success': False, 'error': 'No execute() function'})
-                except Exception as e:
-                    q.put({'success': False, 'error': str(e)})
-
             proc = multiprocessing.Process(
-                target=_run_in_subprocess,
+                target=_run_skill_subprocess,
                 args=(str(handler_path), json.dumps(params), result_queue),
             )
             proc.start()
@@ -179,17 +187,23 @@ class SkillLoader:
         async def _watch():
             seen = set(self.skills.keys())
             while True:
-                await asyncio.sleep(5)
-                current = set(
-                    d.name for d in self.skills_dir.iterdir()
-                    if d.is_dir() and (d / 'manifest.json').exists()
-                )
-                if current != seen:
-                    self.skills.clear()
-                    self.discover()
-                    seen = set(self.skills.keys())
-                    logger.info(f'Skills hot-reloaded: {len(self.skills)} skills')
-                    if self._on_skills_changed:
-                        self._on_skills_changed({'count': len(self.skills)})
+                try:
+                    await asyncio.sleep(5)
+                    if not self.skills_dir.exists():
+                        continue
+                    current = set(
+                        d.name for d in self.skills_dir.iterdir()
+                        if d.is_dir() and (d / 'manifest.json').exists()
+                    )
+                    if current != seen:
+                        self.skills.clear()
+                        self.discover()
+                        seen = set(self.skills.keys())
+                        logger.info(f'Skills hot-reloaded: {len(self.skills)} skills')
+                        if self._on_skills_changed:
+                            self._on_skills_changed({'count': len(self.skills)})
+                except Exception as e:
+                    logger.error(f'Skill watcher error: {e}')
+                    await asyncio.sleep(5)
 
         self._watcher_task = asyncio.create_task(_watch())

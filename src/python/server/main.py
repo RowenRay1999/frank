@@ -365,8 +365,8 @@ async def broadcast_event(msg_type: str, payload: dict):
     for ws in list(connected_clients):
         try:
             await send_message(ws, msg_type, payload)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f'Broadcast to client failed: {e}')
 
 
 # ─── 事件回调（供模块使用）──────────────────────────────────
@@ -492,11 +492,11 @@ async def on_mic_error(error_info: dict):
 # ─── Phase 5 回调 ────────────────────────────────────────
 
 async def on_pose_frame(frame_rgb, frame_w: int, frame_h: int):
-    """CameraPipeline 姿态帧回调 → PoseModule 处理"""
+    """CameraPipeline 姿态帧回调 → PoseModule 处理
+    PoseModule internal _dispatch_gesture already routes to on_gesture_detected via action slots.
+    """
     if pose_module:
-        event = pose_module.process_frame(frame_rgb, frame_w, frame_h)
-        if event and event.gesture_type != 'none':
-            await on_gesture_detected(event)
+        pose_module.process_frame(frame_rgb, frame_w, frame_h)
 
 
 async def on_gesture_detected(event: GestureEvent):
@@ -576,14 +576,32 @@ async def main():
 
     # Phase 3: 初始化 STT（异步后台加载）
     stt_module = SpeechToText()
+    stt_module.set_on_transcription(
+        lambda result: asyncio.create_task(broadcast_event('stt.transcription', result))
+    )
     asyncio.create_task(stt_module.load_model())
 
     # Phase 3: 初始化 LLM
     llm_manager = LLMManager(config.get('llm', {}))
+    llm_manager.set_on_token(
+        lambda token_info: asyncio.create_task(broadcast_event('llm.token', token_info))
+    )
+    llm_manager.set_on_response(
+        lambda response_info: asyncio.create_task(broadcast_event('llm.response', response_info))
+    )
     await llm_manager.initialize()
 
     # Phase 3: 初始化 TTS
     tts_module = TextToSpeech(config.get('tts', {}))
+    tts_module.set_on_start(
+        lambda info: asyncio.create_task(broadcast_event('tts.start', info))
+    )
+    tts_module.set_on_complete(
+        lambda info: asyncio.create_task(broadcast_event('tts.complete', info))
+    )
+    tts_module.set_on_unavailable(
+        lambda reason: asyncio.create_task(broadcast_event('tts.unavailable', reason))
+    )
 
     # Phase 3: 初始化免唤醒指令
     wakefree_manager = WakeFreeManager()
