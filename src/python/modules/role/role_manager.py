@@ -221,3 +221,47 @@ class RoleManager:
 
     def get_all_roles(self) -> list[dict]:
         return [self.get_role_info(r.name.lower()) for r in Role]
+
+    def get_all_roles_info(self) -> list[dict]:
+        """返回四级角色的完整定义（含权限矩阵和技能白名单）"""
+        roles_info = []
+        for r in Role:
+            role_name = r.name.lower()
+            base = self.get_role_info(role_name)
+            skills = SKILL_WHITELIST.get(r, [])
+            limit = DAILY_USAGE_LIMITS.get(r, 0)
+
+            # 权限项定义
+            permissions = {
+                'member_management': r == Role.OWNER,
+                'system_config': r == Role.OWNER,
+                'full_data_access': r == Role.OWNER,
+                'regular_skills': r in (Role.OWNER, Role.ADULT),
+                'smart_home_control': r in (Role.OWNER, Role.ADULT),
+                'calendar_notes': r in (Role.OWNER, Role.ADULT),
+                'file_operations': r in (Role.OWNER, Role.ADULT),
+                'third_party_skills': r in (Role.OWNER, Role.ADULT),
+                'session_preempt': r == Role.OWNER,
+                'basic_qa': True,  # 所有角色都可基础问答
+            }
+
+            base['permissions'] = permissions
+            base['skills'] = ['全部技能'] if skills == ['*'] else skills
+            base['daily_limit_minutes'] = limit // 60 if limit > 0 else 0
+            base['description'] = {
+                'owner': '家庭管理员，拥有全部权限',
+                'adult': '成年家庭成员，可使用所有常规技能',
+                'child': '儿童成员，受限技能 + 每日使用时长限制',
+                'guest': '临时访客，仅基础问答，不保留数据',
+            }.get(role_name, '')
+
+            roles_info.append(base)
+
+        return roles_info
+
+    def get_role_detail(self, role_name: str) -> dict | None:
+        """获取指定角色的完整详情"""
+        for info in self.get_all_roles_info():
+            if info['name'] == role_name.lower():
+                return info
+        return None

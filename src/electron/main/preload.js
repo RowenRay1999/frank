@@ -15,6 +15,12 @@ contextBridge.exposeInMainWorld('frankAPI', {
   // ── 连接状态 ──
   getConnectionStatus: () => ipcRenderer.invoke('frank:getConnectionStatus'),
 
+  // ── 窗口控制 ──
+  minimizeWindow: () => ipcRenderer.invoke('frank:minimizeWindow'),
+  closeWindow: () => ipcRenderer.invoke('frank:closeWindow'),
+  hideWindow: () => ipcRenderer.invoke('frank:hideWindow'),
+  quitApp: () => ipcRenderer.invoke('frank:quitApp'),
+
   // ── 事件监听 ──
   onStateChanged: (callback) => {
     const handler = (_event, data) => callback(data);
@@ -135,5 +141,53 @@ contextBridge.exposeInMainWorld('frankAPI', {
     const handler = (_event, data) => callback(data);
     ipcRenderer.on('gesture.detected', handler);
     return () => ipcRenderer.removeListener('gesture.detected', handler);
+  },
+
+  // ── 媒体设备枚举 ──
+  getAudioDevices: async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      return devices
+        .filter(d => d.kind === 'audioinput')
+        .map(d => ({ deviceId: d.deviceId, label: d.label || `麦克风 (${d.deviceId.slice(0, 8)})` }));
+    } catch (e) {
+      return [];
+    }
+  },
+
+  getVideoDevices: async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      return devices
+        .filter(d => d.kind === 'videoinput')
+        .map(d => ({ deviceId: d.deviceId, label: d.label || `摄像头 (${d.deviceId.slice(0, 8)})` }));
+    } catch (e) {
+      return [];
+    }
+  },
+
+  // ── 角色 / 设置事件监听 ──
+  onRoleList: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('role.list', handler);
+    return () => ipcRenderer.removeListener('role.list', handler);
+  },
+
+  onRoleInfo: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('role.info', handler);
+    return () => ipcRenderer.removeListener('role.info', handler);
+  },
+
+  onSettingsCurrent: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('settings.current', handler);
+    return () => ipcRenderer.removeListener('settings.current', handler);
+  },
+
+  onSettingsUpdated: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('settings.updated', handler);
+    return () => ipcRenderer.removeListener('settings.updated', handler);
   },
 });

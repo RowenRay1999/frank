@@ -4,73 +4,343 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
-  <title>Frank (弗兰克)</title>
+  <title>Frank · 主面板</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- 自定义标题栏 -->
-  <div id="title-bar">
-    <div id="title-bar-left">
-      <span id="status-dot" class="status-idle"></span>
-      <span id="title-text">Frank - 待机中</span>
+
+  <!-- 外置窗口控制条 -->
+  <div class="window-controls">
+    <button class="window-ctrl-btn" id="btn-minimize" title="最小化">─</button>
+    <button class="window-ctrl-btn close" id="btn-close" title="关闭到托盘">✕</button>
+  </div>
+
+  <!-- 返回首页 -->
+  <a href="index.html" class="back-home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M15 18l-6-6 6-6"></path></svg>
+  </a>
+
+  <div class="main-stage">
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         ZONE 1 — Status & Notification
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="zone-status">
+      <div class="status-row-top">
+        <div class="user-block">
+          <div class="user-avatar" id="userAvatar">?</div>
+          <div class="user-info">
+            <span class="user-name" id="userName">访客</span>
+            <span class="user-role" id="userRole">未识别</span>
+          </div>
+        </div>
+        <div class="status-right">
+          <div class="time-block" id="liveTime">00:00</div>
+          <div class="notif-preview hidden" id="notifPreview">
+            <span class="notif-preview-dot"></span>
+            <span class="notif-preview-text" id="notifText"></span>
+            <span class="notif-count" id="notifCount">0</span>
+          </div>
+        </div>
+      </div>
+      <div class="status-row-hw">
+        <div class="hw-chip" id="chipCAM" title="摄像头"><span class="hw-chip-dot"></span> CAM</div>
+        <div class="hw-chip" id="chipMIC" title="麦克风"><span class="hw-chip-dot"></span> MIC</div>
+        <div class="hw-chip" id="chipSCR" title="屏幕录制"><span class="hw-chip-dot"></span> SCR</div>
+      </div>
     </div>
-    <div id="title-bar-right">
-      <button id="btn-always-on-top" class="title-btn" title="窗口置顶">📌</button>
-      <button id="btn-minimize" class="title-btn" title="最小化">─</button>
-      <button id="btn-expand" class="title-btn" title="展开/收起">⛶</button>
-      <button id="btn-close" class="title-btn title-btn-close" title="关闭到托盘">✕</button>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         ZONE 2 — Monitor + Panels
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="zone-monitor">
+
+      <!-- TOP: Orb -->
+      <div class="monitor-thinking">
+        <div class="orb-stage">
+          <div class="thinking-rings" id="thinkingRings">
+            <div class="thinking-ring"></div><div class="thinking-ring"></div><div class="thinking-ring"></div>
+          </div>
+          <div class="particle-field">
+            <div class="particle" style="--dx:-10px;--dy:-30px"></div>
+            <div class="particle" style="--dx:16px;--dy:-24px"></div>
+            <div class="particle" style="--dx:22px;--dy:-10px"></div>
+            <div class="particle" style="--dx:14px;--dy:10px"></div>
+            <div class="particle" style="--dx:-4px;--dy:18px"></div>
+            <div class="particle" style="--dx:-18px;--dy:6px"></div>
+            <div class="particle" style="--dx:-16px;--dy:-16px"></div>
+            <div class="particle" style="--dx:6px;--dy:-20px"></div>
+          </div>
+          <div class="orb" id="frankOrb" title="点击与 Frank 对话"></div>
+        </div>
+        <div class="agent-label" id="agentLabel"><span class="pulse-dot"></span> <span id="agentLabelText">聆听中 · 等待唤醒</span></div>
+      </div>
+
+      <!-- BOTTOM: Tasks + Conversation -->
+      <div class="monitor-bottom">
+        <div class="section-header">
+          <span class="section-title">执行状态 <span class="section-count" id="taskCount">0</span></span>
+          <div style="display:flex;align-items:center;gap:var(--space-2);">
+            <a class="task-view-all" id="taskViewAll">查看全部</a>
+            <button class="task-toggle" id="taskToggle" onclick="cycleTaskState()" title="切换任务列表视图">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"></path></svg>
+            </button>
+          </div>
+        </div>
+        <div class="task-list-scroll" id="taskListScroll"></div>
+        <div class="task-half-hint" onclick="cycleTaskState()">展开更多 ▾</div>
+        <div class="convo-section" id="convoSection">
+          <div class="convo-bar">
+            <div class="convo-bar-avatar">F</div>
+            <div class="convo-bar-info">
+              <span class="convo-bar-topic" id="convoTopic">暂无对话</span>
+              <span class="convo-bar-meta" id="convoMeta">开始与 Frank 对话吧</span>
+            </div>
+            <button class="convo-bar-expand" id="convoExpandBtn">展开 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button>
+          </div>
+          <div class="convo-bubbles" id="convoBubbles"></div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════
+           PANELS (slide-over)
+           ═══════════════════════════════════════════════════ -->
+
+      <!-- Chat Overlay -->
+      <div class="panel-slide chat-overlay" id="chatOverlay">
+        <div class="panel-slide-header">
+          <span class="panel-slide-title">Frank · 对话</span>
+          <button class="panel-slide-close" data-panel="chatOverlay">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div class="chat-overlay-messages" id="chatMessages">
+          <div class="chat-bubble frank">你好，有什么我可以帮你的？</div>
+        </div>
+        <div class="chat-input-bar">
+          <input type="text" class="chat-input" id="chatInput" placeholder="输入消息…">
+          <button class="chat-send" id="chatSendBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Settings Panel -->
+      <div class="panel-slide" id="settingsPanel">
+        <div class="panel-slide-header">
+          <span class="panel-slide-title">设置</span>
+          <button class="panel-slide-close" data-panel="settingsPanel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div class="panel-slide-body" id="settingsContent">
+          <div class="settings-loading" id="settingsLoading">加载配置中...</div>
+          <div id="settingsForm" class="hidden">
+            <div class="settings-section">
+              <h4 class="settings-section-title" data-section="llm">🤖 大模型 (LLM) <span class="collapse-icon">▾</span></h4>
+              <div class="settings-group" id="section-llm">
+                <div class="form-group"><label>API 地址</label><input type="text" data-key="llm.api_base" class="settings-input" placeholder="https://api.openai.com/v1"></div>
+                <div class="form-group"><label>模型名称</label><input type="text" data-key="llm.model" class="settings-input" placeholder="gpt-4o"></div>
+                <div class="form-group"><label>温度 <span class="slider-value" data-for="llm.temperature">0.7</span></label><input type="range" data-key="llm.temperature" class="settings-slider" min="0" max="2" step="0.1" value="0.7"></div>
+                <div class="form-group"><label>最大 Token 数</label><input type="number" data-key="llm.max_tokens" class="settings-input" min="100" max="4096" value="2048"></div>
+              </div>
+            </div>
+            <div class="settings-section">
+              <h4 class="settings-section-title" data-section="tts">🔊 语音合成 (TTS) <span class="collapse-icon">▾</span></h4>
+              <div class="settings-group" id="section-tts">
+                <div class="form-group"><label>语音角色</label><select data-key="tts.voice" class="settings-select"><option value="zh-CN-XiaoxiaoNeural">晓晓 (女)</option><option value="zh-CN-YunxiNeural">云希 (男)</option><option value="zh-CN-XiaoyiNeural">晓伊 (女)</option></select></div>
+                <div class="form-group"><label>语速 <span class="slider-value" data-for="tts.speed">1.0</span></label><input type="range" data-key="tts.speed" class="settings-slider" min="0.5" max="2" step="0.1" value="1.0"></div>
+                <div class="form-group"><label>音量 <span class="slider-value" data-for="tts.volume">80</span></label><input type="range" data-key="tts.volume" class="settings-slider" min="0" max="100" step="5" value="80"></div>
+              </div>
+            </div>
+            <div class="settings-section">
+              <h4 class="settings-section-title" data-section="audio">🎤 音频设备 <span class="collapse-icon">▾</span></h4>
+              <div class="settings-group" id="section-audio">
+                <div class="form-group"><label>麦克风设备 <span class="restart-hint">重启后生效</span></label><select data-key="microphone.device_id" class="settings-select" id="selectMic"></select></div>
+                <div class="form-group"><label>唤醒词灵敏度 <span class="slider-value" data-for="wake_word.confidence_threshold">0.7</span></label><input type="range" data-key="wake_word.confidence_threshold" class="settings-slider" min="0.3" max="0.95" step="0.05" value="0.7"></div>
+              </div>
+            </div>
+            <div class="settings-section">
+              <h4 class="settings-section-title" data-section="camera">📷 摄像头设备 <span class="collapse-icon">▾</span></h4>
+              <div class="settings-group" id="section-camera">
+                <div class="form-group"><label>摄像头设备 <span class="restart-hint">重启后生效</span></label><select data-key="camera.device_id" class="settings-select" id="selectCam"></select></div>
+                <div class="form-group"><label>人脸检测灵敏度 <span class="slider-value" data-for="camera.detection_confidence">0.7</span></label><input type="range" data-key="camera.detection_confidence" class="settings-slider" min="0.3" max="0.95" step="0.05" value="0.7"></div>
+              </div>
+            </div>
+            <div class="settings-section">
+              <h4 class="settings-section-title" data-section="privacy">🔒 隐私与数据 <span class="collapse-icon">▾</span></h4>
+              <div class="settings-group" id="section-privacy">
+                <div class="form-group toggle-group"><label>自动清理未识别访客</label><input type="checkbox" data-key="privacy.auto_clean" class="settings-toggle" checked></div>
+                <div class="form-group"><label>清理周期（天） <span class="slider-value" data-for="privacy.clean_days">30</span></label><input type="range" data-key="privacy.clean_days" class="settings-slider" min="15" max="90" step="1" value="30"></div>
+                <div class="form-group"><label>清理前通知（天） <span class="slider-value" data-for="privacy.notify_days">3</span></label><input type="range" data-key="privacy.notify_days" class="settings-slider" min="0" max="7" step="1" value="3"></div>
+              </div>
+            </div>
+            <p id="settingsSaveStatus" class="save-status hidden">已保存 ✓</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Members Panel -->
+      <div class="panel-slide" id="membersPanel">
+        <div class="panel-slide-header">
+          <span class="panel-slide-title">成员管理</span>
+          <button class="panel-slide-close" data-panel="membersPanel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div class="panel-slide-body">
+          <div class="panel-stats"><span id="statsMembers">已识别: 0</span><span id="statsPending">待识别: 0</span></div>
+          <p class="panel-section-title">已识别成员</p>
+          <ul id="memberList" class="member-list"></ul>
+          <p class="empty-state hidden" id="memberEmpty">暂无已识别成员</p>
+          <p class="panel-section-title">待识别访客</p>
+          <ul id="pendingList" class="member-list"></ul>
+          <p class="empty-state hidden" id="pendingEmpty">暂无待识别访客</p>
+        </div>
+        <div class="panel-slide-footer">
+          <button class="btn-primary-full" id="btnAddMember">＋ 添加成员</button>
+        </div>
+      </div>
+
+      <!-- Identity/Persona Panel -->
+      <div class="panel-slide" id="identityPanel">
+        <div class="panel-slide-header">
+          <span class="panel-slide-title">身份识别</span>
+          <button class="panel-slide-close" data-panel="identityPanel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div class="panel-slide-body">
+          <div class="identity-card">
+            <span id="identityBadge" class="identity-badge">⚪</span>
+            <span id="identityName">未识别用户</span>
+            <span id="identityStatus">—</span>
+          </div>
+          <p class="panel-section-title">角色层级</p>
+          <div id="roleCards"></div>
+          <p class="panel-section-title">权限矩阵</p>
+          <div id="permissionMatrix" class="permission-matrix"></div>
+        </div>
+      </div>
+
+      <!-- Task Detail Panel -->
+      <div class="panel-slide" id="taskDetailPanel">
+        <div class="panel-slide-header">
+          <span class="panel-slide-title">任务看板</span>
+          <button class="panel-slide-close" data-panel="taskDetailPanel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div class="panel-slide-body">
+          <div class="task-stats-row">
+            <div class="task-stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">总计</div></div>
+            <div class="task-stat-card"><div class="stat-num" id="statRunning">0</div><div class="stat-label">进行中</div></div>
+            <div class="task-stat-card"><div class="stat-num" id="statDone">0</div><div class="stat-label">已完成</div></div>
+            <div class="task-stat-card"><div class="stat-num" id="statFailed">0</div><div class="stat-label">失败</div></div>
+          </div>
+          <div class="task-filter-bar">
+            <select class="task-filter-select" id="taskFilterStatus"><option value="all">全部</option><option value="running">进行中</option><option value="done">已完成</option><option value="failed">失败</option></select>
+          </div>
+          <div id="taskDetailList"></div>
+          <p class="empty-state hidden" id="taskEmpty">暂无任务</p>
+        </div>
+      </div>
+
+      <!-- Notification Panel -->
+      <div class="panel-slide" id="notifPanel">
+        <div class="panel-slide-header">
+          <span class="panel-slide-title">通知中心</span>
+          <button class="panel-slide-close" data-panel="notifPanel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div class="panel-slide-body" id="notifList"></div>
+      </div>
+
+    </div><!-- /zone-monitor -->
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         ZONE 3 — Navigation
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="zone-routing">
+      <a class="route-item" id="navIdentity" data-panel="identityPanel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="9" r="3"></circle><path d="M3 20c0-4 2.7-6 6-6s6 2 6 6"></path><path d="M16 8h4M18 6v4"></path></svg>
+        <span class="route-label">身份识别</span>
+      </a>
+      <a class="route-item active" id="navTasks" data-panel="taskDetailPanel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M8 2v4M16 2v4M3 10h18"></path><path d="M8 14h.01M12 14h.01M16 14h.01"></path></svg>
+        <span class="route-label">任务看板</span>
+      </a>
+      <a class="route-item" id="navNotifications" data-panel="notifPanel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        <span class="route-label">通知中心</span>
+      </a>
+      <div class="route-divider"></div>
+      <a class="route-item" id="navSettings" data-panel="settingsPanel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span class="route-label">设置</span>
+      </a>
+    </div>
+
+  </div><!-- /main-stage -->
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       Registration Wizard (Modal, over everything)
+       ═══════════════════════════════════════════════════════════════ -->
+  <div id="wizardOverlay" class="wizard-overlay hidden">
+    <div class="wizard">
+      <div class="wizard-header">
+        <h3 id="wizardTitle">添加成员 — 步骤 1/4</h3>
+        <button class="panel-slide-close" id="wizardClose">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="wizard-body">
+        <div id="wizardStep1" class="wizard-step">
+          <div class="form-group"><label>显示名称（2-20 个字符）</label><input type="text" id="regName" placeholder="输入姓名" maxlength="20" autocomplete="off"><span class="form-error hidden" id="regNameError"></span></div>
+          <div class="form-group"><label>选择角色</label>
+            <div class="role-select-grid">
+              <label class="role-card-radio"><input type="radio" name="regRole" value="adult"><span class="role-card-icon">🔵</span><span class="role-card-label">成人</span><span class="role-card-desc">可使用所有常规技能</span></label>
+              <label class="role-card-radio"><input type="radio" name="regRole" value="child"><span class="role-card-icon">🟢</span><span class="role-card-label">儿童</span><span class="role-card-desc">受限技能 + 时长限制</span></label>
+              <label class="role-card-radio"><input type="radio" name="regRole" value="guest"><span class="role-card-icon">⚪</span><span class="role-card-label">访客</span><span class="role-card-desc">仅基础问答，不保留数据</span></label>
+            </div>
+          </div>
+        </div>
+        <div id="wizardStep2" class="wizard-step hidden">
+          <p class="wizard-guide">请正视摄像头，系统将自动采集面部数据</p>
+          <div class="progress-bar"><div id="faceProgressFill" class="progress-fill" style="width:0%"></div></div>
+          <p id="faceProgressText" class="progress-text">面部采集: 0/5</p>
+        </div>
+        <div id="wizardStep3" class="wizard-step hidden">
+          <p class="wizard-guide">请朗读以下句子：</p>
+          <p id="voiceSampleText" class="sample-sentence">今天天气真好，适合出门散步</p>
+          <div class="progress-bar"><div id="voiceProgressFill" class="progress-fill" style="width:0%"></div></div>
+          <p id="voiceProgressText" class="progress-text">声纹采集: 0/3</p>
+        </div>
+        <div id="wizardStep4" class="wizard-step hidden">
+          <div class="reg-summary">
+            <p><strong>姓名：</strong><span id="summaryName"></span></p>
+            <p><strong>角色：</strong><span id="summaryRole"></span></p>
+            <p><strong>面部样本：</strong><span id="summaryFace">0/5</span></p>
+            <p><strong>声纹样本：</strong><span id="summaryVoice">0/3</span></p>
+          </div>
+        </div>
+      </div>
+      <div class="wizard-footer">
+        <button id="wizardPrev" class="btn-sm hidden">上一步</button>
+        <button id="wizardNext" class="btn-sm primary">下一步</button>
+        <button id="wizardCancel" class="btn-sm">取消</button>
+      </div>
     </div>
   </div>
 
-  <!-- 欢迎卡片 -->
-  <div id="welcome-card">
-    <h2 id="greeting">下午好，需要我做些什么？</h2>
-    <p id="hint-text">说一声 "Hey Frank" 来唤醒我</p>
-  </div>
-
-  <!-- 对话区域 -->
-  <div id="chat-area">
-    <div id="message-list"></div>
-  </div>
-
-  <!-- 输入区域 -->
-  <div id="input-area">
-    <div id="input-status">语音监听中...</div>
-  </div>
-
-  <!-- 底部工具栏 -->
-  <div id="toolbar">
-    <button id="btn-tasks" class="toolbar-btn" title="任务看板">📋 任务</button>
-    <button id="btn-members" class="toolbar-btn" title="成员管理">👥 成员</button>
-    <button id="btn-settings" class="toolbar-btn" title="设置">⚙ 设置</button>
-  </div>
-
-  <!-- 设置面板占位 -->
-  <div id="settings-panel" class="panel hidden">
-    <div class="panel-header">
-      <h3>设置</h3>
-      <button class="panel-close">✕</button>
-    </div>
-    <div class="panel-content">
-      <p class="placeholder-text">设置功能将在后续版本中开放</p>
-    </div>
-  </div>
-
-  <!-- 错误提示弹出 -->
-  <div id="error-toast" class="toast hidden">
-    <span id="error-message"></span>
-    <button id="error-close" class="toast-close">✕</button>
-  </div>
-
-  <!-- Phase 5: 手势浮层提示 -->
-  <div id="gesture-toast" class="gesture-toast hidden">
-    <span id="gesture-icon" class="gesture-icon"></span>
-    <span id="gesture-text"></span>
-  </div>
-
-  <!-- Phase 5: 暂停横幅 -->
-  <div id="pause-banner" class="pause-banner hidden">
-    <span>⏸️ 对话已暂停 — 再次举手即可恢复</span>
+  <!-- 手势浮层 -->
+  <div id="gestureToast" class="gesture-toast hidden"><span id="gestureIcon" class="gesture-icon"></span><span id="gestureText"></span></div>
+  <!-- 暂停横幅 -->
+  <div id="pauseBanner" class="pause-banner hidden"><span>⏸️ 对话已暂停 — 再次举手即可恢复</span></div>
+  <!-- 错误提示 -->
+  <div id="errorToast" class="toast hidden" style="position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:var(--danger);color:white;padding:10px 20px;border-radius:var(--radius-full);z-index:999;">
+    <span id="errorMessage"></span><button id="errorClose" class="toast-close">✕</button>
   </div>
 
   <script src="app.js"></script>

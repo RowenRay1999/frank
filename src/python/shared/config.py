@@ -57,6 +57,52 @@ def reload_config():
     return get_config()
 
 
+def _deep_merge(base: dict, update: dict) -> dict:
+    """深度合并两个字典，update 的值覆盖 base"""
+    for key, value in update.items():
+        if key in base and isinstance(base[key], dict) and isinstance(value, dict):
+            _deep_merge(base[key], value)
+        else:
+            base[key] = value
+    return base
+
+
+def update_config(partial: dict, config_path: str | Path | None = None) -> dict:
+    """部分更新配置并写回 YAML 文件。
+
+    Args:
+        partial: 要更新的配置键值对（支持嵌套）
+        config_path: 配置文件路径，默认 PROJECT_ROOT / config / frank.yaml
+
+    Returns:
+        更新后的完整配置
+    """
+    global _config
+
+    if config_path is None:
+        config_path = PROJECT_ROOT / 'config' / 'frank.yaml'
+
+    config_path = Path(config_path)
+
+    # 确保已有配置加载
+    current = get_config(config_path)
+
+    # 深度合并
+    _deep_merge(current, partial)
+    _config = current
+
+    # 写回 YAML
+    try:
+        with open(config_path, 'w', encoding='utf-8') as f:
+            yaml.dump(current, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+        logger.info(f'Config updated and saved to {config_path}')
+    except Exception as e:
+        logger.error(f'Failed to write config: {e}')
+        raise
+
+    return current
+
+
 def _get_defaults() -> dict[str, Any]:
     return {
         'camera': {

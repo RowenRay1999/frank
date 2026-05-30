@@ -27,7 +27,7 @@ from websockets.asyncio.server import serve
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.python.shared.config import get_config
+from src.python.shared.config import get_config, update_config
 from src.python.shared.message import Message, ErrorMessage
 from src.python.shared.database import init_database
 from src.python.modules.state.state_machine import StateMachine
@@ -248,6 +248,38 @@ async def handle_message(websocket, raw_msg: str):
                 if fusion_engine:
                     fusion_engine.reset_identity()
                 await send_message(websocket, 'identity.reset_ok', {}, msg_id)
+
+            # ── 角色查询 (Phase 2) ──
+            case 'role.list':
+                roles = role_manager.get_all_roles_info() if role_manager else []
+                await send_message(websocket, 'role.list', {'roles': roles}, msg_id)
+
+            case 'role.info':
+                role_name = payload.get('role_name', 'guest')
+                info = role_manager.get_role_detail(role_name) if role_manager else None
+                if info:
+                    await send_message(websocket, 'role.info', info, msg_id)
+                else:
+                    await send_error(websocket, 'ROLE_NOT_FOUND', f'角色不存在: {role_name}', True, f'可用角色: owner, adult, child, guest', msg_id)
+
+            # ── 设置管理 ──
+            case 'settings.get':
+                cfg = get_config()
+                # 脱敏敏感字段
+                safe = _sanitize_config(cfg)
+                await send_message(websocket, 'settings.current', safe, msg_id)
+
+            case 'settings.update':
+                partial = payload if isinstance(payload, dict) else {}
+                if not partial:
+                    await send_error(websocket, 'EMPTY_UPDATE', '更新内容不能为空', True, '', msg_id)
+                else:
+                    try:
+                        updated = update_config(partial)
+                        safe = _sanitize_config(updated)
+                        await send_message(websocket, 'settings.updated', safe, msg_id)
+                    except Exception as e:
+                        await send_error(websocket, 'CONFIG_WRITE_FAILED', str(e), True, '请检查配置文件权限', msg_id)
 
             # ── Phase 4: 任务管理 ──
             case 'task.list':
@@ -532,6 +564,19 @@ async def on_gesture_detected(event: GestureEvent):
 
 
 # ─── 主函数 ─────────────────────────────────────────────────
+def _sanitize_config(cfg: dict) -> dict:
+    """脱敏配置中的敏感字段（如 API key）"""
+    import copy
+    safe = copy.deepcopy(cfg)
+    # LLM API key 脱敏
+    llm = safe.get('llm', {})
+    if isinstance(llm, dict) and 'api_key' in llm and llm['api_key']:
+        key = str(llm['api_key'])
+        if len(key) > 4:
+            llm['api_key'] = key[:4] + '*' * (len(key) - 4)
+    return safe
+
+
 def find_available_port(start_port: int, max_retries: int = 15) -> int:
     """查找可用端口，冲突时自动递增"""
     import socket

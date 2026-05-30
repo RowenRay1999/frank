@@ -239,6 +239,16 @@ function handleMessage(msg) {
     case 'member.pending':
     case 'member.identified':
     case 'member.deleted':
+    case 'member.register_started':
+    case 'member.register_info_ok':
+    case 'member.register_cancelled':
+      if (mainWindow) mainWindow.webContents.send(msg.type, msg.payload);
+      break;
+    // Phase 2: Role / Settings events
+    case 'role.list':
+    case 'role.info':
+    case 'settings.current':
+    case 'settings.updated':
       if (mainWindow) mainWindow.webContents.send(msg.type, msg.payload);
       break;
     case 'error':
@@ -290,20 +300,20 @@ function handleMessage(msg) {
 
 // ─── 窗口管理 ───────────────────────────────────────────
 function createWindow() {
-  const { width = 360, height = 500, x, y } = config.window || {};
+  const { x, y } = config.window || {};
+  const WINDOW_WIDTH = 800;
+  const WINDOW_HEIGHT = 600;
 
   mainWindow = new BrowserWindow({
-    width,
-    height,
-    minWidth: 300,
+    width: WINDOW_WIDTH,
+    height: WINDOW_HEIGHT,
+    minWidth: 500,
     minHeight: 400,
-    maxWidth: 1200,
-    maxHeight: 900,
     x,
     y,
     frame: false,
     transparent: false,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: '#0a0a0c',
     resizable: true,
     skipTaskbar: false,
     webPreferences: {
@@ -312,6 +322,11 @@ function createWindow() {
       nodeIntegration: false,
     },
   });
+
+  // 首次启动居中
+  if (!x && !y) {
+    mainWindow.center();
+  }
 
   mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
 
