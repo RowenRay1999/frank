@@ -71,6 +71,10 @@ class CameraPipeline:
 
         # 预览推送
         self._preview_active = False
+
+        # 人脸截图
+        self._last_frame = None  # 最近一帧 BGR (用于人脸截图)
+        self._last_face_bbox = None  # 最近检测到的人脸 bbox
         self._on_preview_frame: Callable | None = None
         self._on_preview_detections: Callable | None = None
 
@@ -107,6 +111,32 @@ class CameraPipeline:
     def set_on_preview_detections(self, callback: Callable):
         """预览检测结果回调（faces, objects, pose, gesture）"""
         self._on_preview_detections = callback
+
+    def capture_face_thumbnail(self, bbox: dict) -> bytes | None:
+        """根据相对 bbox {x, y, width, height} 从最近帧截取人脸缩略图
+        Returns: JPEG bytes (128×128) or None
+        """
+        if self._last_frame is None:
+            return None
+        try:
+            h, w = self._last_frame.shape[:2]
+            x = int(bbox['x'] * w)
+            y = int(bbox['y'] * h)
+            bw = int(bbox['width'] * w)
+            bh = int(bbox['height'] * h)
+            x = max(0, x)
+            y = max(0, y)
+            bw = min(bw, w - x)
+            bh = min(bh, h - y)
+            if bw <= 0 or bh <= 0:
+                return None
+            face = self._last_frame[y:y+bh, x:x+bw]
+            face_resized = cv2.resize(face, (128, 128))
+            _, jpeg = cv2.imencode('.jpg', face_resized, [cv2.IMWRITE_JPEG_QUALITY, 85])
+            return jpeg.tobytes()
+        except Exception as e:
+            logger.debug(f'Face thumbnail capture error: {e}')
+            return None
 
     @property
     def is_insightface_ready(self) -> bool:
@@ -276,6 +306,7 @@ class CameraPipeline:
 
                 # RGB 转换
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                self._last_frame = frame  # 缓存原始帧供人脸截图
 
                 # 人脸检测（InsightFace 主 / MediaPipe 回退）
                 faces = []
@@ -453,6 +484,10 @@ class CameraPipeline:
 
     async def _emit_face_detected(self, faces: list[dict]):
         payload = {'faces': faces, 'count': len(faces)}
+
+        # 缓存第一个检测到的人脸 bbox 供截图使用
+        if faces and 'bbox' in faces[0]:
+            self._last_face_bbox = faces[0]['bbox']
 
         # 主检测事件
         if self._on_face_detected:

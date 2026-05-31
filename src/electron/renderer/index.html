@@ -202,20 +202,46 @@
       <div class="panel-slide" id="identityPanel">
         <div class="panel-slide-header">
           <span class="panel-slide-title">身份识别</span>
-          <button class="panel-slide-close" data-panel="identityPanel">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
-          </button>
+          <div style="display:flex;align-items:center;gap:var(--space-2);">
+            <button class="btn-sm" id="btnRoleInfo" title="查看角色权限说明">角色说明 ▶</button>
+            <button class="panel-slide-close" data-panel="identityPanel">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </button>
+          </div>
         </div>
         <div class="panel-slide-body">
-          <div class="identity-card">
-            <span id="identityBadge" class="identity-badge">⚪</span>
-            <span id="identityName">未识别用户</span>
-            <span id="identityStatus">—</span>
+          <div class="identity-stats" id="identityStats">
+            <span class="identity-stat"><span id="identityStatIdentified">0</span> 已标识</span>
+            <span class="identity-stat"><span id="identityStatPending">0</span> 待标识</span>
+            <span class="identity-stat"><span id="identityStatTotal">0</span> 历史</span>
           </div>
-          <p class="panel-section-title">角色层级</p>
-          <div id="roleCards"></div>
-          <p class="panel-section-title">权限矩阵</p>
-          <div id="permissionMatrix" class="permission-matrix"></div>
+          <div class="identity-filters" id="identityFilters">
+            <button class="identity-filter active" data-role="all">全部</button>
+            <button class="identity-filter" data-role="owner">👑</button>
+            <button class="identity-filter" data-role="admin">🔵</button>
+            <button class="identity-filter" data-role="member">🟢</button>
+            <button class="identity-filter" data-role="guest">⚪</button>
+            <button class="identity-filter" data-role="unidentified">⬜</button>
+          </div>
+          <div class="identity-list" id="identityList">
+            <p class="empty-state" id="identityEmpty">暂无识别记录</p>
+          </div>
+        </div>
+        <div class="panel-slide-footer">
+          <button class="btn-primary-full" id="btnAddMemberIdentity">＋ 添加成员</button>
+        </div>
+      </div>
+
+      <!-- Role Info Panel -->
+      <div class="panel-slide" id="roleInfoPanel">
+        <div class="panel-slide-header">
+          <span class="panel-slide-title">角色权限说明</span>
+          <button class="panel-slide-close" data-panel="roleInfoPanel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="panel-slide-body" id="roleInfoContent">
+          <div class="role-info-loading">加载中...</div>
         </div>
       </div>
 
@@ -296,8 +322,8 @@
           <div class="form-group"><label>显示名称（2-20 个字符）</label><input type="text" id="regName" placeholder="输入姓名" maxlength="20" autocomplete="off"><span class="form-error hidden" id="regNameError"></span></div>
           <div class="form-group"><label>选择角色</label>
             <div class="role-select-grid">
-              <label class="role-card-radio"><input type="radio" name="regRole" value="adult"><span class="role-card-icon">🔵</span><span class="role-card-label">成人</span><span class="role-card-desc">可使用所有常规技能</span></label>
-              <label class="role-card-radio"><input type="radio" name="regRole" value="child"><span class="role-card-icon">🟢</span><span class="role-card-label">儿童</span><span class="role-card-desc">受限技能 + 时长限制</span></label>
+              <label class="role-card-radio"><input type="radio" name="regRole" value="admin"><span class="role-card-icon">🔵</span><span class="role-card-label">管理员</span><span class="role-card-desc">全部指令权限，可管理成员</span></label>
+              <label class="role-card-radio"><input type="radio" name="regRole" value="member"><span class="role-card-icon">🟢</span><span class="role-card-label">成员</span><span class="role-card-desc">常规技能 + 时长限制</span></label>
               <label class="role-card-radio"><input type="radio" name="regRole" value="guest"><span class="role-card-icon">⚪</span><span class="role-card-label">访客</span><span class="role-card-desc">仅基础问答，不保留数据</span></label>
             </div>
           </div>

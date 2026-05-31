@@ -15,6 +15,7 @@ import json
 import logging
 import signal
 import sys
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -49,6 +50,7 @@ from src.python.modules.task_manager.task_manager import TaskManager
 from src.python.modules.skill_loader.skill_loader import SkillLoader
 # Phase 5 modules
 from src.python.modules.pose.pose_module import PoseModule, GestureEvent
+from src.python.modules.notification import ExternalNotifier
 
 # ─── 日志配置 ───────────────────────────────────────────────
 config = get_config()
@@ -83,6 +85,7 @@ task_manager: TaskManager | None = None
 skill_loader: SkillLoader | None = None
 # Phase 5
 pose_module: PoseModule | None = None
+notifier: ExternalNotifier | None = None
 connected_clients: set = set()
 _preview_active = False
 _preview_client = None  # 当前请求预览的 websocket 连接
@@ -123,6 +126,7 @@ async def send_error(websocket, code: str, message: str, recoverable: bool = Tru
 
 async def handle_message(websocket, raw_msg: str):
     """根据消息 type 字段分发到对应处理器"""
+    global _preview_active, _preview_client
     try:
         data = json.loads(raw_msg)
     except json.JSONDecodeError:
@@ -360,7 +364,6 @@ async def handle_message(websocket, raw_msg: str):
 
             # ── 预览控制 ──
             case 'preview.open':
-                global _preview_active, _preview_client
                 _preview_active = True
                 _preview_client = websocket
                 if camera_pipeline:
@@ -370,7 +373,6 @@ async def handle_message(websocket, raw_msg: str):
                 await send_message(websocket, 'preview.opened', {}, msg_id)
 
             case 'preview.close':
-                global _preview_active, _preview_client
                 _preview_active = False
                 _preview_client = None
                 if camera_pipeline:
@@ -510,14 +512,45 @@ async def on_face_embedding(embedding: np.ndarray, confidence: float):
 
 
 async def on_voiceprint(embedding: np.ndarray, duration: float):
-    """Phase 2: 声纹 embedding → 融合引擎"""
+    """Phase 2: 声纹 embedding → 融合引擎 + 频谱存储"""
     if fusion_engine:
         fusion_engine.submit_voice_evidence(embedding, 1.0)
+        current = fusion_engine.get_current_identity()
+        if current and current.get('member_id') and len(embedding) >= 192:
+            try:
+                spectrum_48 = []
+                for i in range(48):
+                    start = i * 4
+                    end = min(start + 4, 192)
+                    segment = embedding[start:end]
+                    rms = float(np.sqrt(np.mean(segment ** 2)))
+                    spectrum_48.append(rms)
+                max_rms = max(spectrum_48) if max(spectrum_48) > 0 else 1.0
+                spectrum_48 = [s / max_rms for s in spectrum_48]
+                member_manager.update_voiceprint_spectrum(current['member_id'], spectrum_48)
+            except Exception as e:
+                logger.debug(f'Voiceprint spectrum save error: {e}')
 
 
 async def on_identity_confirmed(identity: dict):
-    """融合引擎确认身份 → 状态机 + 角色管理"""
+    """融合引擎确认身份 → 截图保存 + 状态机 + 角色管理"""
     logger.info(f'Identity confirmed: {identity.get("display_name")} (role={identity.get("role")})')
+
+    # 保存人脸截图
+    if camera_pipeline and camera_pipeline._last_face_bbox and identity.get('member_id'):
+        try:
+            jpeg_bytes = camera_pipeline.capture_face_thumbnail(camera_pipeline._last_face_bbox)
+            if jpeg_bytes:
+                faces_dir = PROJECT_ROOT / 'data' / 'faces'
+                faces_dir.mkdir(parents=True, exist_ok=True)
+                filename = f"{identity['member_id']}_{int(time.time())}.jpg"
+                filepath = faces_dir / filename
+                filepath.write_bytes(jpeg_bytes)
+                relative_path = f"data/faces/{filename}"
+                member_manager.update_face_thumbnail(identity['member_id'], relative_path)
+        except Exception as e:
+            logger.debug(f'Face thumbnail save error: {e}')
+
     if state_machine:
         state_machine.set_identity(identity)
         state_machine.on_event('identity_confirmed', identity)
@@ -744,6 +777,10 @@ async def main():
     skill_loader = SkillLoader()
     skill_loader.discover()
     asyncio.create_task(skill_loader.start_watcher())
+
+    # 初始化通知器
+    global notifier
+    notifier = ExternalNotifier(config.get('notification', {}))
 
     # Phase 3: 对话编排器
     conversation = ConversationOrchestrator()

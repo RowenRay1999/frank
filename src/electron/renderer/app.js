@@ -15,6 +15,8 @@ const STATE_CONFIG = {
 // ─── Task history (replaces seed data) ─────────────────────
 const taskHistory = [];
 const MAX_TASK_HISTORY = 50;
+let cachedMembers = [];
+let cachedPending = [];
 
 function upsertTask(task) {
   if (task.task_id == null) return;  // 防护: 缺少 task_id 的任务丢弃
@@ -59,8 +61,8 @@ const errorToast = $('errorToast');
 const errorMessage = $('errorMessage');
 
 // Helpers
-const ROLE_BADGES = { owner: '👑', adult: '🔵', child: '🟢', guest: '⚪' };
-const ROLE_NAMES = { owner: '主人', adult: '成人', child: '儿童', guest: '访客' };
+const ROLE_BADGES = { owner: '👑', admin: '🔵', member: '🟢', guest: '⚪', unregistered: '⬜' };
+const ROLE_NAMES = { owner: '主人', admin: '管理员', member: '成员', guest: '访客', unregistered: '未登记' };
 function getRoleBadge(r) { return ROLE_BADGES[r] || '⚪'; }
 function getRoleName(r) { return ROLE_NAMES[r] || '未知'; }
 function formatTime(ts) {
@@ -157,6 +159,7 @@ function openPanel(name) {
   const map = {
     identity: 'identityPanel',
     tasks: 'taskDetailPanel',
+    roleInfo: 'roleInfoPanel',
     notifications: 'notifPanel',
     settings: 'settingsPanel',
     members: 'membersPanel',
@@ -398,45 +401,193 @@ $('pendingList')?.addEventListener('click', (e) => {
 function openIdentifyDialog(unidentifiedId) {
   const name = prompt('请输入该成员显示名称（2-20 字符）：');
   if (!name || name.length < 2 || name.length > 20) { if (name) showToast('名称长度需在 2-20 个字符之间', 'error'); return; }
-  const role = prompt('请选择角色（adult / child / guest）：', 'guest');
-  if (!['adult','child','guest'].includes(role?.toLowerCase())) { showToast('角色必须为 adult、child 或 guest', 'error'); return; }
+  const role = prompt('请选择角色（admin / member / guest）：', 'guest');
+  if (!['admin','member','guest'].includes(role?.toLowerCase())) { showToast('角色必须为 admin、member 或 guest', 'error'); return; }
   window.frankAPI?.sendMessage?.({ type: 'member.identify', payload: { unidentified_id: unidentifiedId, display_name: name, role: role.toLowerCase() } });
   setTimeout(refreshMemberPanel, 500);
 }
 
 $('btnAddMember')?.addEventListener('click', () => openWizard());
+$('btnAddMemberIdentity')?.addEventListener('click', () => openWizard());
 
 // ═══════════════════════════════════════════════════════════
 // PERSONA / IDENTITY PANEL
 // ═══════════════════════════════════════════════════════════
-function loadPersonaPanel() { window.frankAPI?.sendMessage?.({ type: 'role.list' }); }
+// ─── Identity Panel: person list ──────────────────────────
+let allPersons = [];
+let currentFilter = 'all';
+let _personListRenderPending = false;
 
-function updateIdentityCard(identity) {
-  if (!$('identityBadge') || !$('identityName')) return;
-  if (identity?.display_name) {
-    $('identityBadge').textContent = getRoleBadge(identity.role);
-    $('identityName').textContent = identity.display_name;
-    $('identityStatus').textContent = getRoleName(identity.role);
-  } else {
-    $('identityBadge').textContent = '⚪';
-    $('identityName').textContent = '未识别用户';
-    $('identityStatus').textContent = '请面对摄像头以识别身份';
+function loadPersonaPanel() {
+  window.frankAPI?.sendMessage?.({ type: 'member.list' });
+  window.frankAPI?.sendMessage?.({ type: 'member.pending' });
+}
+
+// Batch renderPersonList calls from separate IPC handlers into a single
+// animation-frame render to avoid double-paint and flash of incomplete data.
+function schedulePersonListRender() {
+  if (_personListRenderPending) return;
+  _personListRenderPending = true;
+  requestAnimationFrame(() => {
+    _personListRenderPending = false;
+    if (PanelManager.isOpen($('identityPanel'))) renderPersonList(cachedMembers, cachedPending);
+  });
+}
+
+function renderPersonList(members, pending) {
+  allPersons = [
+    ...(members || []).map(m => ({ ...m, personType: 'member' })),
+    ...(pending || []).map(p => ({
+      ...p,
+      personType: 'unidentified',
+      display_name: p.serial_name || `访客_${String(p.id || '').substring(0, 4).toUpperCase()}`,
+      role: 'unregistered',
+    })),
+  ];
+
+  const identified = (members || []).length;
+  const unidentified = (pending || []).length;
+  const statIdentified = document.getElementById('identityStatIdentified');
+  const statPending = document.getElementById('identityStatPending');
+  const statTotal = document.getElementById('identityStatTotal');
+  if (statIdentified) statIdentified.textContent = identified;
+  if (statPending) statPending.textContent = unidentified;
+  if (statTotal) statTotal.textContent = identified + unidentified;
+
+  applyFilter();
+}
+
+function applyFilter() {
+  const filtered = currentFilter === 'all'
+    ? allPersons
+    : currentFilter === 'unidentified'
+      ? allPersons.filter(p => p.personType === 'unidentified')
+      : allPersons.filter(p => p.role === currentFilter);
+
+  const list = document.getElementById('identityList');
+  const empty = document.getElementById('identityEmpty');
+  if (!list) return;
+
+  if (!filtered.length) {
+    if (empty) empty.classList.remove('hidden');
+    list.innerHTML = '';
+    return;
   }
-}
+  if (empty) empty.classList.add('hidden');
 
-function renderRoleCards(roles) {
-  const c = $('roleCards'); if (!c) return;
-  c.innerHTML = (roles||[]).map(r => {
-    const isOwner = r.name === 'owner';
-    return `<div class="role-card ${isOwner?'role-card--owner':''}" data-role="${r.name}"><div class="role-card-header"><span class="identity-badge">${r.badge||'⚪'}</span><div class="role-card-title"><span class="role-card-name">${r.display_name}</span><span class="role-card-level">等级 ${r.level}</span></div></div><p class="role-card-desc">${r.description||''}</p><div class="role-card-skills hidden" id="skills-${r.name}"><p class="skill-list-title">可用技能：</p><div class="skill-tags">${(r.skills||[]).map(s => `<span class="skill-tag">${s}</span>`).join('')}</div><p class="daily-limit">${r.daily_limit_minutes>0?`每日限制：${r.daily_limit_minutes} 分钟`:'无每日限制'}</p></div></div>`;
+  list.innerHTML = filtered.map(p => {
+    const isIdentified = p.personType === 'member';
+    const role = p.role || 'unregistered';
+    const badge = getRoleBadge(role);
+    const roleName = getRoleName(role);
+
+    const faceThumb = p.face_thumbnail
+      ? `<img src="${String(p.face_thumbnail).replace(/"/g, '&quot;')}" onerror="this.parentElement.innerHTML='<span class=face-placeholder>${badge}</span>'" />`
+      : `<span class="face-placeholder">${badge}</span>`;
+
+    let spectrumBars = '';
+    if (p.voiceprint_spectrum) {
+      try {
+        const bins = typeof p.voiceprint_spectrum === 'string'
+          ? JSON.parse(p.voiceprint_spectrum) : p.voiceprint_spectrum;
+        spectrumBars = (bins || []).slice(0, 9).map(v => {
+          const h = Number(v) * 50;
+          if (isNaN(h) || !isFinite(h)) return '';
+          return `<div class="voiceprint-mini-bar" style="height:${Math.max(2, h)}px"></div>`;
+        }).filter(Boolean).join('');
+      } catch (_) {}
+    }
+
+    return `
+    <div class="identity-item ${isIdentified ? '' : 'unidentified'}">
+      <div class="identity-face-thumb">${faceThumb}</div>
+      <div class="identity-voiceprint-mini">
+        ${spectrumBars || '<span style="font-size:8px;color:var(--muted);margin:auto;">待采集</span>'}
+      </div>
+      <div class="identity-info">
+        <div class="identity-info-name">${p.display_name || '未知'}</div>
+        <div class="identity-info-role">${badge} ${roleName}</div>
+        <div class="identity-info-meta">
+          ${isIdentified
+            ? `识别: ${formatTime(p.last_recognized_at || p.last_active_at)} · ${((p.recognition_confidence || 0) * 100).toFixed(0)}%`
+            : `出现: ${formatTime(p.last_seen_at)} · ${p.appearance_count || 0}次`}
+        </div>
+      </div>
+      <div class="identity-actions">
+        ${isIdentified
+          ? `<button class="identity-action-btn" data-action="edit-person" data-id="${(p.member_id || p.id || '').replace(/"/g, '&quot;')}">✏️</button>`
+          : `<button class="identity-action-btn primary" data-action="identify-person" data-id="${(p.id || '').replace(/"/g, '&quot;')}">标识</button>`}
+      </div>
+    </div>`;
   }).join('');
-  c.querySelectorAll('.role-card').forEach(card => card.addEventListener('click', () => { const s = card.querySelector('.role-card-skills'); if (s) s.classList.toggle('hidden'); }));
 }
 
-function renderPermissionMatrix(roles) {
-  const c = $('permissionMatrix'); if (!c || !roles?.length) return;
-  const perms = [{key:'member_management',label:'成员管理'},{key:'system_config',label:'系统配置'},{key:'full_data_access',label:'全数据访问'},{key:'regular_skills',label:'常规技能'},{key:'smart_home_control',label:'智能家居'},{key:'calendar_notes',label:'日历笔记'},{key:'file_operations',label:'文件操作'},{key:'third_party_skills',label:'第三方技能'},{key:'session_preempt',label:'会话打断'},{key:'basic_qa',label:'基础问答'}];
-  c.innerHTML = `<table class="perm-table"><thead><tr><th>权限</th>${roles.map(r=>`<th>${r.badge} ${r.display_name}</th>`).join('')}</tr></thead><tbody>${perms.map(p=>`<tr><td>${p.label}</td>${roles.map(r=>`<td class="${r.permissions?.[p.key]?'perm-yes':'perm-no'}">${r.permissions?.[p.key]?'✓':'✗'}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+function editPerson(memberId) {
+  const name = prompt('修改显示名称（2-20 字符）：');
+  if (!name || name.length < 2 || name.length > 20) { if (name) showToast('名称长度需在 2-20 个字符之间', 'error'); return; }
+  const role = prompt('选择角色（admin / member / guest）：', 'member');
+  if (!['admin', 'member', 'guest'].includes(role?.toLowerCase())) { showToast('角色无效', 'error'); return; }
+  window.frankAPI?.sendMessage?.({ type: 'member.update', payload: { member_id: memberId, display_name: name, role: role.toLowerCase() } });
+  setTimeout(loadPersonaPanel, 500);
+}
+
+function identifyPerson(unidentifiedId) {
+  const name = prompt('请输入该成员显示名称（2-20 字符）：');
+  if (!name || name.length < 2 || name.length > 20) { if (name) showToast('名称长度需在 2-20 个字符之间', 'error'); return; }
+  const role = prompt('请选择角色（admin / member / guest）：', 'guest');
+  if (!['admin', 'member', 'guest'].includes(role?.toLowerCase())) { showToast('角色必须为 admin、member 或 guest', 'error'); return; }
+  window.frankAPI?.sendMessage?.({ type: 'member.identify', payload: { unidentified_id: unidentifiedId, display_name: name, role: role.toLowerCase() } });
+  setTimeout(loadPersonaPanel, 500);
+}
+
+// ─── Role Info Panel ──────────────────────────────────────
+function loadRoleInfoPanel() {
+  window.frankAPI?.sendMessage?.({ type: 'role.list' });
+}
+
+function renderRoleInfoPanel(roles) {
+  const container = $('roleInfoContent');
+  if (!container || !roles?.length) return;
+
+  const perms = [
+    {key:'member_management',label:'成员管理'},{key:'system_config',label:'系统配置'},
+    {key:'full_data_access',label:'全数据访问'},{key:'regular_skills',label:'常规技能'},
+    {key:'smart_home_control',label:'智能家居'},{key:'calendar_notes',label:'日历笔记'},
+    {key:'file_operations',label:'文件操作'},{key:'third_party_skills',label:'第三方技能'},
+    {key:'session_preempt',label:'会话打断'},{key:'basic_qa',label:'基础问答'},
+  ];
+  const descs = {
+    owner: '系统所有者，每个部署环境仅 1 人。拥有最高指令权限，不可删除。',
+    admin: '管理员，由主人授权。拥有全部指令权限，可管理成员和配置系统。',
+    member: '家庭成员。可使用所有常规技能，每日限制 2 小时。',
+    guest: '临时访客。仅可使用基础问答、天气等受限功能。每日 30 分钟。',
+    unregistered: '未登记。系统自动发现但尚未标识的人物。无任何权限。',
+  };
+
+  container.innerHTML = `
+    <div class="role-info-section-title">角色层级</div>
+    ${roles.map(r => `
+      <div class="role-info-card role-${r.name}">
+        <div class="role-info-card-header">
+          <span style="font-size:18px;">${r.badge || '⬜'}</span>
+          <span style="font-size:14px;font-weight:500;">${r.display_name}</span>
+          <span class="role-info-level">等级 ${r.level}</span>
+        </div>
+        <div class="role-info-desc">${descs[r.name] || r.description || ''}</div>
+      </div>`).join('')}
+
+    <div class="role-info-section-title">权限矩阵</div>
+    <div class="permission-matrix">
+      <table class="perm-table">
+        <thead><tr><th>权限</th>${roles.map(r => `<th>${r.badge} ${r.display_name}</th>`).join('')}</tr></thead>
+        <tbody>
+          ${perms.map(p => `<tr><td>${p.label}</td>${roles.map(r =>
+            `<td class="${r.permissions?.[p.key] ? 'perm-yes' : 'perm-no'}">${r.permissions?.[p.key] ? '✓' : '✗'}</td>`
+          ).join('')}</tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -567,15 +718,27 @@ if (window.frankAPI) {
   window.frankAPI.onVoiceStart(() => setChipState(chipMIC, true));
   window.frankAPI.onVoiceEnd(() => setChipState(chipMIC, false));
   window.frankAPI.onWakeWord(data => { frankOrb?.classList.add('thinking'); thinkingRings?.classList.add('visible'); });
-  window.frankAPI.onIdentityConfirmed(data => { updateUserIdentity(data); updateIdentityCard(data); if(data.display_name) showToast(`${getRoleBadge(data.role)} ${data.display_name} · 已识别`,'success'); });
+  window.frankAPI.onIdentityConfirmed(data => { updateUserIdentity(data); if(data.display_name) showToast(`${getRoleBadge(data.role)} ${data.display_name} · 已识别`,'success'); });
   window.frankAPI.onIdentityChanging(() => { if(userRole) userRole.textContent='识别中...'; });
   window.frankAPI.onIdentityUnknown(() => updateUserIdentity(null));
   window.frankAPI.onGestureDetected(data => { showGestureToast(data.gesture_type, data.confidence); if(data.gesture_type==='raise_hand') togglePauseBanner(true); });
   window.frankAPI.onError(data => { if(errorMessage){errorMessage.textContent=`[${data.code}] ${data.message}${data.suggestion?' — '+data.suggestion:''}`;errorToast?.classList.remove('hidden');setTimeout(()=>errorToast?.classList.add('hidden'),5000);} });
-  window.frankAPI.onMemberList(data => { if(data?.members) renderMemberList(data.members); if(data?.members?.[0]?.display_name) updateUserIdentity(data.members[0]); });
-  window.frankAPI.onMemberPending(data => { if(data?.pending) renderPendingList(data.pending); });
+  window.frankAPI.onMemberList(data => {
+    cachedMembers = data?.members || [];
+    schedulePersonListRender();
+    renderMemberList(cachedMembers);
+  });
+  window.frankAPI.onMemberPending(data => {
+    cachedPending = data?.pending || [];
+    schedulePersonListRender();
+    renderPendingList(cachedPending);
+  });
   window.frankAPI.onMemberRegistered(() => { showToast('成员注册成功！','success'); refreshMemberPanel(); });
-  window.frankAPI.onRoleList?.(data => { if(data?.roles) { renderRoleCards(data.roles); renderPermissionMatrix(data.roles); } });
+  window.frankAPI.onRoleList?.(data => {
+    if (data?.roles) {
+      if (PanelManager.isOpen($('roleInfoPanel'))) renderRoleInfoPanel(data.roles);
+    }
+  });
   window.frankAPI.onSettingsCurrent?.(data => populateSettingsForm(data));
   window.frankAPI.onSettingsUpdated?.(data => { populateSettingsForm(data); const s=$('settingsSaveStatus'); if(s){s.classList.remove('hidden');setTimeout(()=>s.classList.add('hidden'),2000);} });
   window.frankAPI.onTaskList?.(data => { if(data?.tasks) { allTasks = data.tasks; if(PanelManager.isOpen($('taskDetailPanel'))) renderTaskDetailList(allTasks); } });
@@ -661,6 +824,32 @@ if (window.frankAPI) {
     }
   });
 }
+
+// ─── Role info button ────────────────────────────────────
+$('btnRoleInfo')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  openPanel('roleInfo');
+  loadRoleInfoPanel();
+});
+
+// ─── Identity filter clicks ──────────────────────────────
+$('identityFilters')?.addEventListener('click', (e) => {
+  const btn = e.target.closest('.identity-filter');
+  if (!btn) return;
+  document.querySelectorAll('.identity-filter').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = btn.dataset.role;
+  applyFilter();
+});
+
+// ─── Identity list action delegation ─────────────────────
+$('identityList')?.addEventListener('click', (e) => {
+  const btn = e.target.closest('.identity-action-btn');
+  if (!btn) return;
+  e.stopPropagation();
+  if (btn.dataset.action === 'edit-person') editPerson(btn.dataset.id);
+  else if (btn.dataset.action === 'identify-person') identifyPerson(btn.dataset.id);
+});
 
 // ─── Chip click handlers ─────────────────────────────────
 chipCAM?.addEventListener('click', () => window.frankAPI?.toggleCamera?.());

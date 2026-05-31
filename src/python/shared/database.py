@@ -28,7 +28,7 @@ logger = logging.getLogger('frank.database')
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 DEFAULT_DB_PATH = PROJECT_ROOT / 'data' / 'frank.db'
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 # 线程锁（SQLite 单写多读模式）
 _db_lock = threading.Lock()
@@ -78,8 +78,7 @@ def init_database():
             CREATE TABLE IF NOT EXISTS members (
                 id TEXT PRIMARY KEY,
                 display_name TEXT NOT NULL,
-                role TEXT NOT NULL DEFAULT 'guest'
-                    CHECK(role IN ('owner', 'adult', 'child', 'guest')),
+                role TEXT NOT NULL DEFAULT 'guest',
                 face_embedding BLOB,
                 typical_distance_cm REAL,
                 voice_embedding BLOB,
@@ -162,12 +161,84 @@ def init_database():
         ).fetchone()
         current_version = current['v'] if current and current['v'] else 0
 
+        if current_version < 3:
+            logger.info('Running schema migration to version 3...')
+            # 角色迁移：adult→admin, child→member
+            # 移除旧 CHECK 约束（重建 members 表）
+            try:
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS members_new (
+                        id TEXT PRIMARY KEY,
+                        display_name TEXT NOT NULL,
+                        role TEXT NOT NULL DEFAULT 'guest',
+                        face_embedding BLOB,
+                        typical_distance_cm REAL,
+                        voice_embedding BLOB,
+                        labeled INTEGER NOT NULL DEFAULT 1,
+                        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                        last_active_at TEXT NOT NULL DEFAULT (datetime('now')),
+                        appearance_count INTEGER NOT NULL DEFAULT 0,
+                        face_quality_score REAL DEFAULT 0,
+                        voice_quality_score REAL DEFAULT 0,
+                        face_thumbnail TEXT,
+                        voiceprint_spectrum TEXT,
+                        last_recognized_at TEXT,
+                        recognition_confidence REAL DEFAULT 0
+                    )
+                """)
+                conn.execute("INSERT OR IGNORE INTO members_new SELECT id, display_name, CASE WHEN role='adult' THEN 'admin' WHEN role='child' THEN 'member' ELSE role END, face_embedding, typical_distance_cm, voice_embedding, labeled, created_at, last_active_at, appearance_count, face_quality_score, voice_quality_score, NULL, NULL, NULL, 0 FROM members")
+                conn.execute("DROP TABLE members")
+                conn.execute("ALTER TABLE members_new RENAME TO members")
+            except Exception:
+                pass
+            conn.execute("UPDATE members SET role = 'admin' WHERE role = 'adult'")
+            conn.execute("UPDATE members SET role = 'member' WHERE role = 'child'")
+            # 新增角色 unregistered（如果 roles 表存在）
+            try:
+                conn.execute("""
+                    INSERT OR IGNORE INTO roles (name, display_name, level, description, permissions_json, skills_json, daily_limit_minutes, badge)
+                    VALUES ('unregistered', '未登记', 0, '系统自动发现的未标识人物，无任何权限',
+                        '{}', '[]', 0, '⬜')
+                """)
+            except Exception:
+                pass
+            # 更新 roles 表已有角色
+            try:
+                conn.execute("UPDATE roles SET display_name = '管理员' WHERE name = 'admin'")
+                conn.execute("UPDATE roles SET display_name = '成员' WHERE name = 'member'")
+            except Exception:
+                pass
+            # 新增字段：members 表
+            for col, col_def in [
+                ('face_thumbnail', 'TEXT'),
+                ('voiceprint_spectrum', 'TEXT'),
+                ('last_recognized_at', 'TEXT'),
+                ('recognition_confidence', 'REAL DEFAULT 0'),
+            ]:
+                try:
+                    conn.execute(f"ALTER TABLE members ADD COLUMN {col} {col_def}")
+                except Exception:
+                    pass
+            # 新增字段：unidentified 表
+            for col, col_def in [
+                ('face_thumbnail', 'TEXT'),
+                ('voiceprint_spectrum', 'TEXT'),
+            ]:
+                try:
+                    conn.execute(f"ALTER TABLE unidentified ADD COLUMN {col} {col_def}")
+                except Exception:
+                    pass
+
         if current_version < SCHEMA_VERSION:
             conn.execute(
                 "INSERT OR REPLACE INTO schema_version (version) VALUES (?)",
                 (SCHEMA_VERSION,)
             )
             logger.info(f'Database schema updated to version {SCHEMA_VERSION}')
+
+    # 确保 faces 截图目录存在
+    faces_dir = DEFAULT_DB_PATH.parent / 'faces'
+    faces_dir.mkdir(parents=True, exist_ok=True)
 
     # 设置文件权限（仅当前用户读写）
     _secure_file(db_path)

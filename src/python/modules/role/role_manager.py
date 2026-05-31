@@ -21,63 +21,70 @@ logger = logging.getLogger('frank.role')
 
 class Role(IntEnum):
     """角色等级（数值越大权限越高）"""
+    UNREGISTERED = -1
     GUEST = 0
-    CHILD = 1
-    ADULT = 2
+    MEMBER = 1
+    ADMIN = 2
     OWNER = 3
 
     @classmethod
     def from_string(cls, s: str) -> 'Role':
         mapping = {
+            'unregistered': cls.UNREGISTERED,
             'guest': cls.GUEST,
-            'child': cls.CHILD,
-            'adult': cls.ADULT,
+            'member': cls.MEMBER,
+            'admin': cls.ADMIN,
             'owner': cls.OWNER,
         }
-        return mapping.get(s.lower(), cls.GUEST)
+        return mapping.get(s.lower(), cls.UNREGISTERED)
 
 
 # 角色中文名称
 ROLE_NAMES = {
     Role.OWNER: '主人',
-    Role.ADULT: '成人',
-    Role.CHILD: '儿童',
+    Role.ADMIN: '管理员',
+    Role.MEMBER: '成员',
     Role.GUEST: '访客',
+    Role.UNREGISTERED: '未登记',
 }
 
 # 角色徽章符号
 ROLE_BADGES = {
     Role.OWNER: '👑',
-    Role.ADULT: '🔵',
-    Role.CHILD: '🟢',
+    Role.ADMIN: '🔵',
+    Role.MEMBER: '🟢',
     Role.GUEST: '⚪',
+    Role.UNREGISTERED: '⬜',
 }
 
 # 角色 CSS 类名
 ROLE_CSS_CLASSES = {
     Role.OWNER: 'role-owner',
-    Role.ADULT: 'role-adult',
-    Role.CHILD: 'role-child',
+    Role.ADMIN: 'role-admin',
+    Role.MEMBER: 'role-member',
     Role.GUEST: 'role-guest',
+    Role.UNREGISTERED: 'role-unregistered',
 }
 
 # 各角色可访问的技能白名单（技能名列表，'*' 表示全部）
 SKILL_WHITELIST = {
     Role.OWNER: ['*'],
-    Role.ADULT: ['*'],  # 除成员管理和系统配置外（在代码中额外检查）
-    Role.CHILD: [
+    Role.ADMIN: ['*'],
+    Role.MEMBER: [
         'weather', 'time', 'reminder', 'music', 'translation',
         'knowledge', 'story', 'joke',
     ],
     Role.GUEST: ['weather', 'time', 'knowledge', 'joke'],
+    Role.UNREGISTERED: [],
 }
 
 # 使用时长限制（秒/天，0 表示无限制）
 DAILY_USAGE_LIMITS = {
     Role.OWNER: 0,
-    Role.ADULT: 0,
-    Role.CHILD: 7200,   # 2 小时
+    Role.ADMIN: 0,
+    Role.MEMBER: 7200,   # 2 小时
     Role.GUEST: 1800,   # 30 分钟
+    Role.UNREGISTERED: 0,
 }
 
 # 敏感操作（仅 Owner 可执行）
@@ -223,7 +230,7 @@ class RoleManager:
         return [self.get_role_info(r.name.lower()) for r in Role]
 
     def get_all_roles_info(self) -> list[dict]:
-        """返回四级角色的完整定义（含权限矩阵和技能白名单）"""
+        """返回全部角色的完整定义（含权限矩阵和技能白名单）"""
         roles_info = []
         for r in Role:
             role_name = r.name.lower()

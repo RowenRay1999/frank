@@ -288,6 +288,48 @@ class MemberManager:
         delete_member(member_id)
         logger.info(f'Member removed: {display_name} (anonymize_chat={anonymize_chat})')
 
+    # ─── 声纹频谱 ───────────────────────────────────────
+
+    @staticmethod
+    def update_voiceprint_spectrum(member_id: str, spectrum_bins: list[float]):
+        import json
+        from src.python.shared.database import get_connection
+        with get_connection() as conn:
+            conn.execute(
+                "UPDATE members SET voiceprint_spectrum = ? WHERE id = ?",
+                (json.dumps(spectrum_bins), member_id)
+            )
+
+    @staticmethod
+    def update_unidentified_spectrum(unid_id: str, spectrum_bins: list[float]):
+        import json
+        from src.python.shared.database import get_connection
+        with get_connection() as conn:
+            conn.execute(
+                "UPDATE unidentified SET voiceprint_spectrum = ? WHERE id = ?",
+                (json.dumps(spectrum_bins), unid_id)
+            )
+
+    # ─── 人脸缩略图 ─────────────────────────────────────
+
+    @staticmethod
+    def update_face_thumbnail(member_id: str, thumbnail_path: str):
+        from src.python.shared.database import get_connection
+        with get_connection() as conn:
+            conn.execute(
+                "UPDATE members SET face_thumbnail = ? WHERE id = ?",
+                (thumbnail_path, member_id)
+            )
+
+    @staticmethod
+    def update_unidentified_thumbnail(unid_id: str, thumbnail_path: str):
+        from src.python.shared.database import get_connection
+        with get_connection() as conn:
+            conn.execute(
+                "UPDATE unidentified SET face_thumbnail = ? WHERE id = ?",
+                (thumbnail_path, unid_id)
+            )
+
     @staticmethod
     def get_stats() -> dict:
         return get_database_stats()
