@@ -12,6 +12,22 @@ const STATE_CONFIG = {
   Degraded: { orbState: 'breathing', label: '降级模式 · 设备不可用', chipCAM: false, chipMIC: false },
 };
 
+// ─── Task history (replaces seed data) ─────────────────────
+const taskHistory = [];
+const MAX_TASK_HISTORY = 50;
+
+function upsertTask(task) {
+  if (task.task_id == null) return;  // 防护: 缺少 task_id 的任务丢弃
+  const idx = taskHistory.findIndex(t => t.task_id === task.task_id);
+  if (idx >= 0) {
+    Object.assign(taskHistory[idx], task);
+  } else {
+    taskHistory.unshift(task);
+    if (taskHistory.length > MAX_TASK_HISTORY) taskHistory.pop();
+  }
+  renderInlineTasks(taskHistory);
+}
+
 // ─── DOM refs ─────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
 const userAvatar = $('userAvatar');
@@ -23,6 +39,7 @@ const notifText = $('notifText');
 const notifCount = $('notifCount');
 const chipCAM = $('chipCAM');
 const chipMIC = $('chipMIC');
+const chipSCR = $('chipSCR');
 const frankOrb = $('frankOrb');
 const thinkingRings = $('thinkingRings');
 const agentLabelText = $('agentLabelText');
@@ -47,7 +64,7 @@ const ROLE_NAMES = { owner: '主人', adult: '成人', child: '儿童', guest: '
 function getRoleBadge(r) { return ROLE_BADGES[r] || '⚪'; }
 function getRoleName(r) { return ROLE_NAMES[r] || '未知'; }
 function formatTime(ts) {
-  if (!ts) return '—';
+  if (ts == null || ts === '') return '—';
   const d = typeof ts === 'number' ? new Date(ts * 1000) : new Date(ts);
   if (isNaN(d.getTime())) return '—';
   const diff = (Date.now() - d.getTime()) / 1000;
@@ -178,8 +195,16 @@ $('taskViewAll')?.addEventListener('click', (e) => { e.preventDefault(); openPan
 // Convo expand button
 $('convoExpandBtn')?.addEventListener('click', () => openPanel('chat'));
 
-// Orb click → open chat
-frankOrb?.addEventListener('click', () => openPanel('chat'));
+// Orb click → open preview window
+frankOrb?.addEventListener('click', () => {
+  window.frankAPI?.openPreview?.();
+});
+
+// Agent label click → open chat
+$('agentLabelText')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  openPanel('chat');
+});
 
 // ─── Keyboard shortcuts ───────────────────────────────────
 document.addEventListener('keydown', (e) => {
@@ -554,40 +579,98 @@ if (window.frankAPI) {
   window.frankAPI.onSettingsCurrent?.(data => populateSettingsForm(data));
   window.frankAPI.onSettingsUpdated?.(data => { populateSettingsForm(data); const s=$('settingsSaveStatus'); if(s){s.classList.remove('hidden');setTimeout(()=>s.classList.add('hidden'),2000);} });
   window.frankAPI.onTaskList?.(data => { if(data?.tasks) { allTasks = data.tasks; if(PanelManager.isOpen($('taskDetailPanel'))) renderTaskDetailList(allTasks); } });
+
+  // ── 任务事件 ──
+  window.frankAPI.onTaskUpdated?.(data => {
+    const STATUS_MAP = { executing: 'running', queued: 'pending', completed: 'done', cancelled: 'failed' };
+    upsertTask({
+      task_id: data.task_id,
+      status: STATUS_MAP[data.status] || data.status,
+      text: data.display_name || data.command || '',
+      source: data.user_id ? 'user' : 'sys',
+      elapsed: data.started_at ? formatTime(data.started_at) : '—',
+      progress: data.progress || 0,
+    });
+    if (PanelManager.isOpen($('taskDetailPanel'))) refreshTaskDetailPanel();
+  });
+  window.frankAPI.onTaskCompleted?.(data => {
+    upsertTask({
+      task_id: data.task_id,
+      status: 'done',
+      text: data.display_name || data.command || '',
+      source: data.user_id ? 'user' : 'sys',
+      elapsed: data.completed_at ? formatTime(data.completed_at) : '—',
+      progress: 100,
+    });
+    if (PanelManager.isOpen($('taskDetailPanel'))) refreshTaskDetailPanel();
+  });
+  window.frankAPI.onTaskFailed?.(data => {
+    upsertTask({
+      task_id: data.task_id,
+      status: 'failed',
+      text: data.display_name || data.command || '',
+      source: data.user_id ? 'user' : 'sys',
+      elapsed: data.completed_at ? formatTime(data.completed_at) : '—',
+      progress: data.progress || 0,
+      error: data.error_info?.message || '未知错误',
+    });
+    if (PanelManager.isOpen($('taskDetailPanel'))) refreshTaskDetailPanel();
+  });
+
+  // ── 设备状态 ──
+  window.frankAPI.onDeviceStatus?.(data => {
+    if (data.camera) {
+      setChipState(chipCAM, data.camera.active);
+      if (chipCAM) chipCAM.title = `${data.camera.pipeline || 'Camera'} · ${data.camera.fps}fps · ${data.camera.faces_detected || 0} face`;
+    }
+    if (data.microphone) {
+      setChipState(chipMIC, data.microphone.active);
+      if (chipMIC) chipMIC.title = `${data.microphone.pipeline || 'Mic'} · ${data.microphone.level_db?.toFixed(1) || '—'}dB${data.microphone.vad_active ? ' · VAD' : ''}`;
+    }
+    if (data.screen) {
+      setChipState(chipSCR, data.screen.active);
+    }
+  });
+
+  // ── 对话事件 ──
+  window.frankAPI.onChatSubState?.(data => {
+    if (agentLabelText) {
+      const labels = { listening: '聆听中…', transcribing: '转写中…', thinking: '思考中…', speaking: '回复中…' };
+      agentLabelText.textContent = labels[data.to] || data.to || '等待中';
+    }
+  });
+  window.frankAPI.onUserMessage?.(data => {
+    if (convoTopic) convoTopic.textContent = (data.text || '').length > 20 ? (data.text || '').substring(0, 20) + '…' : (data.text || '');
+    if (convoMeta) convoMeta.textContent = '刚刚 · 用户';
+  });
+  window.frankAPI.onAssistantMessage?.(data => {
+    if (convoMeta) convoMeta.textContent = '刚刚 · Frank';
+  });
+  window.frankAPI.onSTTTranscription?.(data => {
+    if (convoMeta) convoMeta.textContent = '转写: ' + ((data.text || '').substring(0, 30));
+  });
+  window.frankAPI.onNotification?.(data => {
+    if (data?.notifications) {
+      renderNotifList(data.notifications);
+      if (data.notifications.length > 0) {
+        const latest = data.notifications[0];
+        if (notifText) notifText.textContent = latest.body || latest.title || '';
+        if (notifCount) notifCount.textContent = String(data.notifications.length);
+        notifPreview?.classList.remove('hidden');
+      }
+    }
+  });
 }
+
+// ─── Chip click handlers ─────────────────────────────────
+chipCAM?.addEventListener('click', () => window.frankAPI?.toggleCamera?.());
+chipMIC?.addEventListener('click', () => window.frankAPI?.toggleMicrophone?.());
 
 // ─── Init ────────────────────────────────────────────────
 async function init() {
   console.log('[Frank UI v3] Initializing...');
   updateTime(); setInterval(updateTime, 10000);
   try { if (window.frankAPI) { const s = await window.frankAPI.getState(); if (s) setOrbState(s.name||'Idle'); } } catch (_) {}
-
-  // Seed tasks
-  allTasks = [
-    { status:'running', text:'人脸识别 · 身份匹配中', source:'sys', elapsed:'0.8s', progress:30 },
-    { status:'pending', text:'声纹验证 · 等待麦克风唤醒', source:'sys', elapsed:'—', progress:0 },
-    { status:'done', text:'日程查询 · 今天 & 明天', source:'爸', elapsed:'0.3s', progress:100 },
-    { status:'done', text:'通知摘要生成 · 钢琴课时间变动', source:'sys', elapsed:'0.1s', progress:100 },
-  ];
-  renderInlineTasks(allTasks);
-
-  // Seed conversation
-  updateInlineConversation('明天日程安排 · 提醒设置', '共 4 条消息 · 2 分钟前', [
-    { role:'user', sender:'爸爸', text:'帮我查一下明天下午的日程', time:'14:28' },
-    { role:'frank', sender:'Frank', text:'明天下午有两件事：<br>• 14:00 家长会<br>• 16:30 钢琴课', time:'14:28' },
-    { role:'user', sender:'爸爸', text:'好的，都设置提醒', time:'14:29' },
-    { role:'frank', sender:'Frank', text:'已设置两个提醒。钢琴老师发来消息说下周时间有变动。', time:'14:29' },
-  ]);
-
-  // Seed notifications
-  renderNotifList([
-    { title:'钢琴课时间变动', body:'小宝的钢琴课下周时间有变动，请查看新时间表', time:Date.now()-120000 },
-    { title:'日程提醒', body:'明天下午 14:00 家长会（学校三楼会议室）', time:Date.now()-3600000 },
-    { title:'系统更新', body:'Frank 已更新至最新版本', time:Date.now()-86400000 },
-  ]);
-  if (notifText) notifText.textContent = '小宝的钢琴课下周时间有变动';
-  if (notifCount) notifCount.textContent = '3';
-  notifPreview?.classList.remove('hidden');
 }
 init();
 
@@ -596,11 +679,12 @@ function renderInlineTasks(tasks) {
   if (!taskListScroll) return;
   if (taskCount) taskCount.textContent = String(tasks.length);
   taskListScroll.innerHTML = tasks.map(t => `
-    <div class="task-row${t.done?' done-row':''}" onclick="openPanel('chat')">
+    <div class="task-row${t.status === 'done' ? ' done-row' : ''}" onclick="openPanel('chat')">
       <div class="task-status-icon ${t.status||'pending'}">
         ${t.status==='running'?'<div class="task-spinner"></div>':''}
         ${t.status==='pending'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>':''}
         ${t.status==='done'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="10" height="10"><path d="M20 6L9 17l-5-5"></path></svg>':''}
+        ${t.status==='failed'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><path d="M18 6L6 18M6 6l12 12"></path></svg>':''}
       </div>
       <span class="task-row-text">${t.text||''}</span>
       <span class="task-row-source">${t.source||'sys'}</span>

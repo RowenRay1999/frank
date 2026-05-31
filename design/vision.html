@@ -1,0 +1,953 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Frank · 识别预览</title>
+  <link rel="stylesheet" href="css/app.css" />
+  <style>
+    /* ─── Desktop backdrop ────────────────────────────────────────────── */
+    body {
+      background: #0a0a0c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    /* ─── 16:9 canvas wrapper ─────────────────────────────────────────── */
+    .canvas-16x9 {
+      width: 1280px; height: 720px;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      position: relative;
+      box-shadow:
+        0 0 0 1px #1a1a1d,
+        0 0 0 3px #0d0d0f,
+        0 20px 60px rgba(0, 0, 0, 0.7);
+      flex-shrink: 0;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ─── Back link — outside canvas ──────────────────────────────────── */
+    .back-link {
+      position: fixed;
+      top: var(--space-4); left: var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-full);
+      background: rgba(255,255,255,0.06);
+      color: var(--fg-2);
+      text-decoration: none;
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: all var(--motion-fast);
+      z-index: 100;
+    }
+    .back-link:hover { background: rgba(255,255,255,0.10); color: var(--fg); }
+    .back-link svg { width: 16px; height: 16px; }
+
+    /* ─── Shortcut hint ───────────────────────────────────────────────── */
+    .shortcut-hint {
+      position: fixed;
+      top: var(--space-4); right: var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-full);
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: 0.03em;
+      z-index: 100;
+    }
+    .shortcut-hint kbd {
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--fg-2);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════
+       VISION HEADER
+       ═══════════════════════════════════════════════════════════════ */
+    .vision-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-2) var(--space-4);
+      background: rgba(0,0,0,0.85);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      z-index: 2;
+      flex-shrink: 0;
+    }
+    .vision-header-left {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .vision-live-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ff453a;
+      box-shadow: 0 0 6px #ff453a;
+      animation: status-pulse 1.0s ease-in-out infinite;
+    }
+    @keyframes status-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.4; transform: scale(0.8); }
+    }
+    .vision-live-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--fg-2);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .vision-algo-tag {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      background: rgba(100, 210, 255, 0.12);
+      color: var(--info);
+      letter-spacing: 0.04em;
+    }
+    .vision-close {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      display: grid; place-items: center;
+      color: var(--fg-2);
+      cursor: pointer;
+      border: none;
+      transition: all var(--motion-fast);
+    }
+    .vision-close:hover { background: rgba(255,255,255,0.12); color: var(--fg); }
+    .vision-close svg { width: 16px; height: 16px; }
+
+    /* ═══════════════════════════════════════════════════════════════════
+       VIDEO CANVAS
+       ═══════════════════════════════════════════════════════════════ */
+    .vision-canvas {
+      flex: 1;
+      min-height: 56%;
+      position: relative;
+      background:
+        radial-gradient(ellipse at 40% 35%, rgba(0,113,227,0.05), transparent 50%),
+        linear-gradient(180deg, #0a0a0e 0%, #0d0d12 100%);
+      overflow: hidden;
+    }
+    /* scanline effect */
+    .vision-canvas::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.03) 2px,
+        rgba(0,0,0,0.03) 4px
+      );
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    /* grid overlay */
+    .vision-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(100,210,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(100,210,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      z-index: 1;
+    }
+
+    /* ── Face detection bounding box ────────────────────────────────── */
+    .face-bbox {
+      position: absolute;
+      width: 180px; height: 230px;
+      border: 2px solid oklch(68% 0.22 55 / 80%);
+      border-radius: 8px;
+      top: 10%; left: 46%;
+      transform: translateX(-50%);
+      z-index: 4;
+      box-shadow:
+        0 0 14px oklch(62% 0.20 50 / 30%),
+        inset 0 0 14px oklch(62% 0.20 50 / 10%);
+      animation: bbox-breathe 2.0s ease-in-out infinite;
+    }
+    @keyframes bbox-breathe {
+      0%, 100% { border-color: oklch(68% 0.22 55 / 70%); }
+      50%      { border-color: oklch(64% 0.24 50 / 95%); }
+    }
+    .face-bbox::before {
+      content: 'FACE · 爸爸';
+      position: absolute; top: -26px; left: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: oklch(72% 0.22 55);
+      background: rgba(0,0,0,0.8);
+      padding: 3px 10px;
+      border-radius: 3px;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .face-bbox::after {
+      content: '97.3%';
+      position: absolute; top: -26px; right: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--success);
+      background: rgba(0,0,0,0.8);
+      padding: 3px 10px;
+      border-radius: 3px;
+      letter-spacing: 0.04em;
+    }
+
+    /* face landmark dots */
+    .face-landmark {
+      position: absolute;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: oklch(72% 0.25 60);
+      box-shadow: 0 0 5px oklch(68% 0.22 55 / 70%);
+      z-index: 5;
+      animation: landmark-flicker 1.5s ease-in-out infinite;
+    }
+    @keyframes landmark-flicker {
+      0%, 100% { opacity: 0.7; }
+      40%      { opacity: 1; }
+    }
+    .fl-eye-l  { top: 30%; left: 28%; animation-delay: 0s; }
+    .fl-eye-r  { top: 30%; left: 62%; animation-delay: 0.15s; }
+    .fl-nose   { top: 52%; left: 45%; animation-delay: 0.3s; }
+    .fl-mouth-l{ top: 68%; left: 32%; animation-delay: 0.45s; }
+    .fl-mouth-r{ top: 68%; left: 58%; animation-delay: 0.6s; }
+
+    /* ── Object detection bounding boxes ────────────────────────────── */
+    .obj-bbox {
+      position: absolute;
+      border: 1.5px solid rgba(100,210,255,0.7);
+      border-radius: 4px;
+      z-index: 4;
+      animation: obj-blink 3s ease-in-out infinite;
+    }
+    @keyframes obj-blink {
+      0%, 100% { border-color: rgba(100,210,255,0.5); }
+      40%      { border-color: rgba(100,210,255,0.9); }
+    }
+    .obj-bbox::before {
+      content: attr(data-label);
+      position: absolute; top: -22px; left: 0;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--info);
+      background: rgba(0,0,0,0.8);
+      padding: 2px 8px;
+      border-radius: 2px;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .obj-bbox::after {
+      content: attr(data-conf);
+      position: absolute; bottom: -19px; right: 0;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: rgba(100,210,255,0.7);
+      background: rgba(0,0,0,0.8);
+      padding: 2px 8px;
+      border-radius: 2px;
+      letter-spacing: 0.04em;
+    }
+
+    .obj-bbox.obj-phone {
+      top: 18%; left: 6%; width: 80px; height: 140px;
+      animation-delay: 0s;
+    }
+    .obj-bbox.obj-cup {
+      top: 38%; left: 64%; width: 64px; height: 56px;
+      animation-delay: 0.7s;
+    }
+    .obj-bbox.obj-keyboard {
+      bottom: 14%; left: 8%; width: 160px; height: 48px;
+      animation-delay: 1.4s;
+    }
+
+    /* ── Motion tracking trails ─────────────────────────────────────── */
+    .motion-trail {
+      position: absolute;
+      z-index: 4;
+      pointer-events: none;
+    }
+    .motion-trail-line {
+      stroke: rgba(48,209,88,0.6);
+      stroke-width: 2px;
+      fill: none;
+      stroke-dasharray: 4 3;
+      animation: trail-dash 1s linear infinite;
+    }
+    @keyframes trail-dash { to { stroke-dashoffset: -14; } }
+    .motion-dot {
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 12px var(--success);
+      animation: motion-pulse 0.8s ease-in-out infinite;
+    }
+    @keyframes motion-pulse {
+      0%, 100% { opacity: 0.35; transform: scale(1); }
+      50%      { opacity: 1;     transform: scale(1.5); }
+    }
+
+    /* ── Corner HUD readouts ────────────────────────────────────────── */
+    .vision-hud {
+      position: absolute;
+      bottom: var(--space-3); left: var(--space-4); right: var(--space-4);
+      display: flex;
+      justify-content: space-between;
+      z-index: 5;
+      pointer-events: none;
+    }
+    .vision-hud-item {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 0.04em;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .vision-hud-item span:first-child {
+      color: rgba(255,255,255,0.18);
+      font-size: 9px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════
+       AUDIO SECTION
+       ═══════════════════════════════════════════════════════════════ */
+    .vision-audio {
+      flex: 1;
+      background: #0a0a0e;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: flex var(--motion-base), max-height var(--motion-base);
+      max-height: 45%;
+    }
+    .vision-audio.collapsed {
+      flex: 0 0 0;
+      max-height: 0;
+      border-top-color: transparent;
+      overflow: hidden;
+    }
+
+    .audio-tabs {
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      flex-shrink: 0;
+    }
+    .audio-tab {
+      flex: 1;
+      padding: var(--space-3) var(--space-2);
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: all var(--motion-fast);
+      border-bottom: 1.5px solid transparent;
+      user-select: none;
+    }
+    .audio-tab:hover { color: var(--fg-2); }
+    .audio-tab.active {
+      color: var(--info);
+      border-bottom-color: var(--info);
+    }
+
+    /* audio collapse toggle button */
+    .audio-collapse-btn {
+      width: 32px; height: 32px;
+      display: grid; place-items: center;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      flex-shrink: 0;
+      margin-right: var(--space-1);
+      transition: all var(--motion-fast);
+    }
+    .audio-collapse-btn:hover {
+      background: rgba(255,255,255,0.06);
+      color: var(--fg-2);
+    }
+    .audio-collapse-btn svg {
+      width: 16px; height: 16px;
+      transition: transform var(--motion-base);
+    }
+    .audio-collapse-btn.collapsed svg {
+      transform: rotate(180deg);
+    }
+
+    .audio-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .audio-panel {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      padding: var(--space-4);
+      overflow-y: auto;
+    }
+    .audio-panel.active { display: flex; }
+
+    /* ── Waveform visualization ─────────────────────────────────────── */
+    .waveform-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: var(--space-3) 0;
+      position: relative;
+    }
+    .waveform-container::after {
+      content: '';
+      position: absolute;
+      left: var(--space-4); right: var(--space-4);
+      top: 50%;
+      height: 1px;
+      background: oklch(100% 0 0 / 0.10);
+      pointer-events: none;
+    }
+    .waveform-bar {
+      width: 6px;
+      border-radius: 3px;
+      background: linear-gradient(0deg, oklch(62% 0.10 45), oklch(76% 0.18 65));
+      animation: wave-bounce 0.8s ease-in-out infinite;
+      min-height: 4px;
+    }
+    @keyframes wave-bounce {
+      0%, 100% { transform: scaleY(0.3); opacity: 0.3; }
+      50%      { transform: scaleY(1);   opacity: 1; }
+    }
+
+    /* ── Voiceprint match ───────────────────────────────────────────── */
+    .voiceprint-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .voiceprint-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--fg-2);
+      letter-spacing: 0.03em;
+    }
+    .voiceprint-score {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .voiceprint-score.match { color: var(--success); }
+    .voiceprint-score.no-match { color: var(--muted); }
+
+    /* voiceprint spectrum mini-vis */
+    .voiceprint-spectrum {
+      display: flex;
+      align-items: center;
+      gap: 1px;
+      height: 40px;
+      padding: var(--space-3) var(--space-4);
+      position: relative;
+    }
+    .voiceprint-spectrum::after {
+      content: '';
+      position: absolute;
+      left: var(--space-4); right: var(--space-4);
+      top: 50%;
+      height: 1px;
+      background: rgba(100,210,255,0.08);
+      pointer-events: none;
+    }
+    .voiceprint-spectrum .spec-bar {
+      flex: 1;
+      min-width: 2px;
+      border-radius: 1px;
+      background: rgba(100,210,255,0.20);
+      animation: spec-shift 2s ease-in-out infinite;
+    }
+    @keyframes spec-shift {
+      0%, 100% { filter: brightness(0.8); }
+      50%      { filter: brightness(1.6); }
+    }
+
+    /* ── Audio level meter ──────────────────────────────────────────── */
+    .level-meter {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) 0;
+    }
+    .level-meter-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      width: 48px;
+      flex-shrink: 0;
+    }
+    .level-meter-track {
+      flex: 1; height: 4px;
+      border-radius: 2px;
+      background: var(--border-soft);
+      overflow: hidden;
+    }
+    .level-meter-fill {
+      height: 100%; border-radius: 2px;
+      background: oklch(72% 0.20 60);
+      animation: level-breath 1.5s ease-in-out infinite;
+      transition: width 0.15s;
+    }
+    @keyframes level-breath {
+      0%, 100% { width: 50%; }
+      40%      { width: 84%; }
+      70%      { width: 28%; }
+    }
+
+    /* ── Algorithm pipeline indicator ───────────────────────────────── */
+    .algo-pipeline {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-4);
+      border-top: 1px solid rgba(255,255,255,0.04);
+      flex-shrink: 0;
+    }
+    .algo-step {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.03em;
+      transition: color var(--motion-fast);
+    }
+    .algo-step.active { color: var(--info); }
+    .algo-arrow {
+      font-size: 9px;
+      color: rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+    .algo-latency {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: rgba(255,255,255,0.25);
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Waveform mini-overlay — transparent, floats at canvas bottom ────── */
+    .waveform-overlay {
+      position: absolute;
+      bottom: var(--space-3); left: var(--space-3); right: var(--space-3);
+      height: 44px;
+      border-radius: var(--radius-md);
+      background: rgba(0,0,0,0.28);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding: 0 var(--space-4);
+      z-index: 6;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(12px);
+      transition:
+        opacity var(--motion-base),
+        transform var(--motion-base);
+      border: 1px solid oklch(100% 0 0 / 0.08);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+    .waveform-overlay.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .waveform-overlay-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: rgba(255,255,255,0.40);
+      letter-spacing: 0.06em;
+      margin-right: var(--space-3);
+      white-space: nowrap;
+      flex-shrink: 0;
+      text-transform: uppercase;
+    }
+    .overlay-bar {
+      flex: 1;
+      min-width: 2px;
+      border-radius: 1px;
+      background: oklch(68% 0.12 50 / 60%);
+      animation: overlay-bounce 0.6s ease-in-out infinite;
+      max-height: 24px;
+    }
+    @keyframes overlay-bounce {
+      0%, 100% { transform: scaleY(0.25); opacity: 0.3; }
+      50%      { transform: scaleY(1);    opacity: 0.9; }
+    }
+    .overlay-expand-hint {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: rgba(255,255,255,0.35);
+      margin-left: var(--space-3);
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: color var(--motion-fast);
+    }
+    .overlay-expand-hint:hover { color: var(--info); }
+
+    /* ─── Motion speed override ─────────────────────────────────────── */
+    :root {
+      --motion-fast: 150ms;
+      --motion-base: 220ms;
+      --ease-standard: cubic-bezier(0.28, 0, 0.22, 1);
+    }
+
+    /* ─── Scale down on small screens ───────────────────────────────── */
+    @media (max-width: 1360px) {
+      .canvas-16x9 {
+        width: 96vw; height: 54vw;
+        max-width: 1280px; max-height: 720px;
+      }
+    }
+    @media (max-height: 780px) {
+      .canvas-16x9 {
+        width: auto; height: 94vh;
+        max-width: 1280px; max-height: 720px;
+        aspect-ratio: 16 / 9;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- back — outside canvas frame -->
+  <a href="main-panel.html" class="back-link">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+    返回主面板
+  </a>
+
+  <div class="shortcut-hint">
+    按 <kbd>Tab</kbd> 切换标签页
+  </div>
+
+  <div class="canvas-16x9">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         VISION HEADER
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="vision-header">
+      <div class="vision-header-left">
+        <span class="vision-live-dot"></span>
+        <span class="vision-live-label">
+          LIVE
+          <span class="vision-algo-tag">YOLO-nano</span>
+          <span class="vision-algo-tag">FaceNet</span>
+          <span class="vision-algo-tag">DeepSORT</span>
+        </span>
+      </div>
+      <a href="main-panel.html" class="vision-close" title="返回主面板">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </a>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         VIDEO CANVAS — Visual Recognition
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="vision-canvas" id="visionCanvas">
+      <div class="vision-grid"></div>
+
+      <!-- face bounding box with landmarks -->
+      <div class="face-bbox">
+        <div class="face-landmark fl-eye-l"></div>
+        <div class="face-landmark fl-eye-r"></div>
+        <div class="face-landmark fl-nose"></div>
+        <div class="face-landmark fl-mouth-l"></div>
+        <div class="face-landmark fl-mouth-r"></div>
+      </div>
+
+      <!-- object detection boxes -->
+      <div class="obj-bbox obj-phone" data-label="phone" data-conf="0.94"></div>
+      <div class="obj-bbox obj-cup" data-label="cup" data-conf="0.81"></div>
+      <div class="obj-bbox obj-keyboard" data-label="keyboard" data-conf="0.88"></div>
+
+      <!-- motion tracking dots -->
+      <div class="motion-dot" style="top:48%;left:48%;animation-delay:0s;"></div>
+      <div class="motion-dot" style="top:52%;left:44%;animation-delay:0.6s;width:7px;height:7px;"></div>
+
+      <!-- motion trail SVG overlay -->
+      <svg class="motion-trail" style="position:absolute;inset:0;width:100%;height:100%;">
+        <polyline class="motion-trail-line" points="614,192 600,202 586,212 572,220 556,228"/>
+        <polyline class="motion-trail-line" points="548,210 562,220 574,232 586,244"
+          style="stroke:rgba(48,209,88,0.30);"/>
+      </svg>
+
+      <!-- bottom HUD -->
+      <div class="vision-hud">
+        <div class="vision-hud-item">
+          <span>RES</span>
+          <span>1280×720</span>
+        </div>
+        <div class="vision-hud-item">
+          <span>FPS</span>
+          <span style="color:rgba(48,209,88,0.6);">29.8</span>
+        </div>
+        <div class="vision-hud-item">
+          <span>OBJ</span>
+          <span>3</span>
+        </div>
+        <div class="vision-hud-item">
+          <span>FACE</span>
+          <span style="color:oklch(72% 0.22 55 / 70%);">1</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- audio-collapsed waveform mini-overlay — transparent, floats at canvas bottom -->
+    <div class="waveform-overlay" id="waveformOverlay">
+      <span class="waveform-overlay-label">AUDIO</span>
+      <div class="overlay-bar" style="height:14px;animation-delay:0s;"></div>
+      <div class="overlay-bar" style="height:22px;animation-delay:0.03s;"></div>
+      <div class="overlay-bar" style="height:10px;animation-delay:0.06s;"></div>
+      <div class="overlay-bar" style="height:28px;animation-delay:0.09s;"></div>
+      <div class="overlay-bar" style="height:18px;animation-delay:0.12s;"></div>
+      <div class="overlay-bar" style="height:32px;animation-delay:0.15s;"></div>
+      <div class="overlay-bar" style="height:8px;animation-delay:0.18s;"></div>
+      <div class="overlay-bar" style="height:24px;animation-delay:0.21s;"></div>
+      <div class="overlay-bar" style="height:16px;animation-delay:0.24s;"></div>
+      <div class="overlay-bar" style="height:20px;animation-delay:0.27s;"></div>
+      <div class="overlay-bar" style="height:12px;animation-delay:0.30s;"></div>
+      <div class="overlay-bar" style="height:26px;animation-delay:0.33s;"></div>
+      <div class="overlay-bar" style="height:10px;animation-delay:0.36s;"></div>
+      <div class="overlay-bar" style="height:30px;animation-delay:0.39s;"></div>
+      <div class="overlay-bar" style="height:14px;animation-delay:0.42s;"></div>
+      <div class="overlay-bar" style="height:22px;animation-delay:0.45s;"></div>
+      <div class="overlay-bar" style="height:10px;animation-delay:0.48s;"></div>
+      <div class="overlay-bar" style="height:24px;animation-delay:0.51s;"></div>
+      <div class="overlay-bar" style="height:16px;animation-delay:0.54s;"></div>
+      <div class="overlay-bar" style="height:18px;animation-delay:0.57s;"></div>
+      <span class="overlay-expand-hint" onclick="toggleAudio()">▲ 展开</span>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         AUDIO SECTION
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="vision-audio">
+      <div class="audio-tabs">
+        <button class="audio-collapse-btn" onclick="toggleAudio()" title="折叠音频面板">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="audio-tab active" onclick="switchAudioTab('waveform', this)">波形图</div>
+        <div class="audio-tab" onclick="switchAudioTab('voiceprint', this)">声纹匹配</div>
+        <div class="audio-tab" onclick="switchAudioTab('levels', this)">电平监测</div>
+      </div>
+
+      <div class="audio-content">
+        <!-- Waveform panel -->
+        <div class="audio-panel active" id="audio-waveform">
+          <div class="waveform-container" id="waveformBars"></div>
+          <div style="display:flex;justify-content:space-between;padding:0 var(--space-4);font-family:var(--font-mono);font-size:10px;color:var(--muted);">
+            <span>20 Hz</span><span>250</span><span>1k</span><span>4k</span><span>16k</span>
+          </div>
+        </div>
+
+        <!-- Voiceprint panel -->
+        <div class="audio-panel" id="audio-voiceprint">
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:var(--space-2) 0;letter-spacing:0.04em;">声纹特征匹配</div>
+          <div class="voiceprint-spectrum" id="voiceprintSpectrum"></div>
+          <div class="voiceprint-row">
+            <span class="voiceprint-label">爸爸</span>
+            <span class="voiceprint-score match">92.6%</span>
+          </div>
+          <div class="voiceprint-row">
+            <span class="voiceprint-label">妈妈</span>
+            <span class="voiceprint-score no-match">18.4%</span>
+          </div>
+          <div class="voiceprint-row">
+            <span class="voiceprint-label">小宝</span>
+            <span class="voiceprint-score no-match">6.1%</span>
+          </div>
+          <div class="voiceprint-row">
+            <span class="voiceprint-label">未知</span>
+            <span class="voiceprint-score no-match">3.8%</span>
+          </div>
+        </div>
+
+        <!-- Audio levels panel -->
+        <div class="audio-panel" id="audio-levels">
+          <div class="level-meter">
+            <span class="level-meter-label">输入</span>
+            <div class="level-meter-track"><div class="level-meter-fill" id="inputMeter"></div></div>
+          </div>
+          <div class="level-meter">
+            <span class="level-meter-label">降噪</span>
+            <div class="level-meter-track"><div class="level-meter-fill" style="animation-delay:0.4s;background:oklch(68% 0.10 200);"></div></div>
+          </div>
+          <div class="level-meter">
+            <span class="level-meter-label">VAD</span>
+            <div class="level-meter-track"><div class="level-meter-fill" style="animation-delay:0.8s;background:oklch(58% 0.15 165);"></div></div>
+          </div>
+          <div style="display:flex;gap:var(--space-3);padding-top:var(--space-4);">
+            <span class="vision-algo-tag">16kHz · mono</span>
+            <span class="vision-algo-tag">Silero VAD</span>
+            <span class="vision-algo-tag" style="background:rgba(48,209,88,0.10);color:var(--success);">降噪活跃</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- algorithm pipeline footer -->
+      <div class="algo-pipeline">
+        <span class="algo-step active">音频采集</span>
+        <span class="algo-arrow">→</span>
+        <span class="algo-step active">VAD</span>
+        <span class="algo-arrow">→</span>
+        <span class="algo-step">声纹提取</span>
+        <span class="algo-arrow">→</span>
+        <span class="algo-step">特征比对</span>
+        <span class="algo-arrow">→</span>
+        <span class="algo-step">身份确认</span>
+        <span class="algo-latency" id="algoLatency">延迟 42ms</span>
+      </div>
+    </div>
+
+  </div><!-- /canvas-16x9 -->
+
+  <script>
+    // ── Audio collapse / expand ───────────────────────────────────────
+    function toggleAudio() {
+      var audioEl = document.querySelector('.vision-audio');
+      var overlay = document.getElementById('waveformOverlay');
+      var btn = document.querySelector('.audio-collapse-btn');
+      var isCollapsed = audioEl.classList.contains('collapsed');
+
+      if (isCollapsed) {
+        audioEl.classList.remove('collapsed');
+        overlay.classList.remove('visible');
+        btn.classList.remove('collapsed');
+      } else {
+        audioEl.classList.add('collapsed');
+        overlay.classList.add('visible');
+        btn.classList.add('collapsed');
+      }
+    }
+
+    // ── Audio tab switching ───────────────────────────────────────────
+    function switchAudioTab(tabId, el) {
+      document.querySelectorAll('.audio-tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.audio-panel').forEach(function(p) { p.classList.remove('active'); });
+      el.classList.add('active');
+      document.getElementById('audio-' + tabId).classList.add('active');
+    }
+
+    // ── Generate waveform bars ────────────────────────────────────────
+    (function buildWaveform() {
+      var container = document.getElementById('waveformBars');
+      if (!container) return;
+      for (var i = 0; i < 48; i++) {
+        var bar = document.createElement('div');
+        bar.className = 'waveform-bar';
+        var h = 10 + Math.sin(i * 0.35) * 18 + Math.random() * 40;
+        bar.style.height = Math.max(4, h) + 'px';
+        bar.style.animationDelay = (i * 0.05) + 's';
+        bar.style.animationDuration = (0.4 + Math.random() * 0.6) + 's';
+        container.appendChild(bar);
+      }
+    })();
+
+    // ── Generate voiceprint spectrum ──────────────────────────────────
+    (function buildSpectrum() {
+      var container = document.getElementById('voiceprintSpectrum');
+      if (!container) return;
+      for (var i = 0; i < 56; i++) {
+        var bar = document.createElement('div');
+        bar.className = 'spec-bar';
+        bar.style.height = (8 + Math.abs(Math.sin(i * 0.18)) * 30 + Math.random() * 10) + 'px';
+        bar.style.animationDelay = (i * 0.07) + 's';
+        container.appendChild(bar);
+      }
+    })();
+
+    // ── Animate algorithm pipeline ────────────────────────────────────
+    (function animatePipeline() {
+      var steps = document.querySelectorAll('.algo-pipeline .algo-step');
+      if (!steps.length) return;
+      var idx = 0;
+      function cycle() {
+        steps.forEach(function(s) { s.classList.remove('active'); });
+        // accumulate: activate current step + all prior
+        for (var i = 0; i <= idx; i++) { steps[i].classList.add('active'); }
+        idx = (idx + 1) % steps.length;
+        var latEl = document.getElementById('algoLatency');
+        if (latEl) {
+          var lat = 30 + Math.floor(Math.random() * 35);
+          latEl.textContent = '延迟 ' + lat + 'ms';
+        }
+      }
+      cycle();
+      setInterval(cycle, 1400);
+    })();
+
+    // ── Keyboard shortcuts ────────────────────────────────────────────
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        window.location.href = 'main-panel.html';
+        return;
+      }
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        var tabs = document.querySelectorAll('.audio-tab');
+        var current = -1;
+        tabs.forEach(function(t, i) {
+          if (t.classList.contains('active')) current = i;
+        });
+        var next = (current + 1) % tabs.length;
+        switchAudioTab(
+          tabs[next].textContent === '波形图' ? 'waveform'
+            : tabs[next].textContent === '声纹匹配' ? 'voiceprint' : 'levels',
+          tabs[next]
+        );
+      }
+      if (e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        toggleAudio();
+      }
+    });
+  </script>
+</body>
+</html>

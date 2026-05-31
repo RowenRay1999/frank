@@ -17,6 +17,7 @@ let config = null;
 let currentState = { name: 'Idle', timeInState: 0 };
 let currentIdentity = null;  // Phase 2
 let trayUpdateInterval = null;  // WR-03: track for cleanup
+let previewWindow = null;  // 预览窗口
 
 // ─── 开机自启 ────────────────────────────────────────────
 function setAutoStart(enabled) {
@@ -293,6 +294,26 @@ function handleMessage(msg) {
     case 'gesture.deleted':
       if (mainWindow) mainWindow.webContents.send(msg.type, msg.payload);
       break;
+    // 预览帧 → 预览窗口
+    case 'preview.frame':
+    case 'preview.detections':
+    case 'preview.audio_spectrum':
+      if (previewWindow && !previewWindow.isDestroyed()) {
+        previewWindow.webContents.send(msg.type, msg.payload);
+      }
+      break;
+    // 设备状态 → 主窗口
+    case 'device.status':
+      if (mainWindow) mainWindow.webContents.send('device:status', msg.payload);
+      break;
+    // 通知事件 → 主窗口
+    case 'notification':
+    // 任务事件 → 主窗口
+    case 'task.updated':
+    case 'task.completed':
+    case 'task.failed':
+      if (mainWindow) mainWindow.webContents.send(msg.type, msg.payload);
+      break;
     default:
       console.log(`[Frank] Unhandled message type: ${msg.type}`);
   }
@@ -354,6 +375,41 @@ function saveWindowBounds() {
   if (!mainWindow.isMaximized() && !mainWindow.isMinimized()) {
     // 保存到内存中的 config，后续可考虑持久化到 electron-store
     config.window = { ...config.window, ...bounds };
+  }
+}
+
+// ─── 预览窗口 ───────────────────────────────────────────
+function createPreviewWindow() {
+  if (previewWindow && !previewWindow.isDestroyed()) {
+    previewWindow.focus();
+    return;
+  }
+  previewWindow = new BrowserWindow({
+    width: 1280,
+    height: 720,
+    minWidth: 800,
+    minHeight: 450,
+    frame: false,
+    backgroundColor: '#0a0a0c',
+    resizable: true,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+  previewWindow.loadFile(path.join(__dirname, '..', 'renderer', 'preview.html'));
+  previewWindow.on('closed', () => {
+    previewWindow = null;
+    sendMessage({ type: 'preview.close' });
+  });
+  sendMessage({ type: 'preview.open' });
+}
+
+function closePreviewWindow() {
+  if (previewWindow && !previewWindow.isDestroyed()) {
+    previewWindow.destroy();  // closed event handler sends 'preview.close'
+    // previewWindow = null handled in 'closed' event
   }
 }
 
@@ -479,6 +535,8 @@ app.on('ready', async () => {
   createIPC(mainWindow, {
     sendMessage,
     getState: () => currentState,
+    createPreviewWindow,
+    closePreviewWindow,
   });
 });
 
@@ -495,6 +553,10 @@ app.on('before-quit', () => {
   }
   if (wsConnection) {
     wsConnection.close();
+  }
+  if (previewWindow && !previewWindow.isDestroyed()) {
+    previewWindow.destroy();
+    previewWindow = null;
   }
   if (pythonProcess) {
     console.log('[Frank] Stopping Python service...');

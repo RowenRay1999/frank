@@ -84,6 +84,8 @@ skill_loader: SkillLoader | None = None
 # Phase 5
 pose_module: PoseModule | None = None
 connected_clients: set = set()
+_preview_active = False
+_preview_client = None  # 当前请求预览的 websocket 连接
 
 
 # ─── 消息处理 ───────────────────────────────────────────────
@@ -356,6 +358,50 @@ async def handle_message(websocket, raw_msg: str):
                     pose_module.delete_custom_gesture(payload['gesture_id'])
                     await send_message(websocket, 'gesture.deleted', {}, msg_id)
 
+            # ── 预览控制 ──
+            case 'preview.open':
+                global _preview_active, _preview_client
+                _preview_active = True
+                _preview_client = websocket
+                if camera_pipeline:
+                    camera_pipeline.set_preview_active(True)
+                if audio_pipeline:
+                    audio_pipeline.set_preview_active(True)
+                await send_message(websocket, 'preview.opened', {}, msg_id)
+
+            case 'preview.close':
+                global _preview_active, _preview_client
+                _preview_active = False
+                _preview_client = None
+                if camera_pipeline:
+                    camera_pipeline.set_preview_active(False)
+                if audio_pipeline:
+                    audio_pipeline.set_preview_active(False)
+                await send_message(websocket, 'preview.closed', {}, msg_id)
+
+            # ── 设备开关 ──
+            case 'camera.toggle':
+                if camera_pipeline:
+                    if camera_pipeline._running:
+                        await camera_pipeline.stop()
+                        await send_message(websocket, 'camera.stopped', {}, msg_id)
+                    else:
+                        await camera_pipeline.start()
+                        await send_message(websocket, 'camera.started', {}, msg_id)
+                else:
+                    await send_error(websocket, 'CAM_NOT_INIT', '摄像头模块未初始化', True, '', msg_id)
+
+            case 'microphone.toggle':
+                if audio_pipeline:
+                    if audio_pipeline._running:
+                        await audio_pipeline.stop()
+                        await send_message(websocket, 'mic.stopped', {}, msg_id)
+                    else:
+                        await audio_pipeline.start()
+                        await send_message(websocket, 'mic.started', {}, msg_id)
+                else:
+                    await send_error(websocket, 'MIC_NOT_INIT', '麦克风模块未初始化', True, '', msg_id)
+
             # ── 心跳 ──
             case 'ping':
                 await send_message(websocket, 'pong', {}, msg_id)
@@ -390,6 +436,16 @@ async def ws_handler(websocket):
         logger.info(f'Client disconnected: {client_id}')
     finally:
         connected_clients.discard(websocket)
+        # 清理预览状态：防止管线继续为已断开的客户端编码数据
+        global _preview_active, _preview_client
+        if _preview_client is websocket:
+            _preview_active = False
+            _preview_client = None
+            if camera_pipeline:
+                camera_pipeline.set_preview_active(False)
+            if audio_pipeline:
+                audio_pipeline.set_preview_active(False)
+            logger.info(f'Preview state cleared on client disconnect: {client_id}')
 
 
 async def broadcast_event(msg_type: str, payload: dict):
@@ -673,6 +729,16 @@ async def main():
 
     # Phase 4: 任务管理器
     task_manager = TaskManager()
+    # 任务事件回调（广播到 Electron）
+    task_manager.set_on_task_update(
+        lambda task: asyncio.create_task(broadcast_event('task.updated', task))
+    )
+    task_manager.set_on_task_completed(
+        lambda task: asyncio.create_task(broadcast_event('task.completed', task))
+    )
+    task_manager.set_on_task_failed(
+        lambda task: asyncio.create_task(broadcast_event('task.failed', task))
+    )
 
     # Phase 4: 技能加载器
     skill_loader = SkillLoader()
@@ -695,6 +761,34 @@ async def main():
     camera_pipeline.set_on_error(on_camera_error)
     camera_pipeline.set_state_provider(state_machine.get_current_state)
 
+    # 预览推送回调
+    async def on_preview_frame(data):
+        global _preview_client
+        if _preview_client:
+            try:
+                await send_message(_preview_client, 'preview.frame', data)
+            except Exception:
+                logger.debug('Preview frame send failed (client may have disconnected)')
+
+    async def on_preview_detections(data):
+        global _preview_client
+        if _preview_client:
+            try:
+                await send_message(_preview_client, 'preview.detections', data)
+            except Exception:
+                logger.debug('Preview detections send failed (client may have disconnected)')
+
+    async def on_preview_spectrum(data):
+        global _preview_client
+        if _preview_client:
+            try:
+                await send_message(_preview_client, 'preview.audio_spectrum', data)
+            except Exception:
+                logger.debug('Preview spectrum send failed (client may have disconnected)')
+
+    camera_pipeline.set_on_preview_frame(on_preview_frame)
+    camera_pipeline.set_on_preview_detections(on_preview_detections)
+
     # 初始化音频管线 + STT 回调
     audio_pipeline = AudioPipeline(config=config.get('microphone', {}), wake_word_config=config.get('wake_word', {}))
     audio_pipeline.set_on_voice_start(on_voice_start)
@@ -702,6 +796,7 @@ async def main():
     audio_pipeline.set_on_wake_word(on_wake_word)
     audio_pipeline.set_on_voiceprint(on_voiceprint)
     audio_pipeline.set_on_error(on_mic_error)
+    audio_pipeline.set_on_preview_spectrum(on_preview_spectrum)
     # Phase 3: STT 回调 — wake word 触发对话
     audio_pipeline.set_on_stt_trigger(on_stt_trigger)
 
@@ -732,6 +827,33 @@ async def main():
         except Exception as e:
             logger.warning(f'Audio pipeline start failed (degraded mode): {e}')
 
+        # 启动 device.status 定时广播 (1Hz)
+        async def broadcast_device_status():
+            while True:
+                await asyncio.sleep(1.0)
+                status = {
+                    'camera': {
+                        'active': camera_pipeline._running if camera_pipeline else False,
+                        'fps': camera_pipeline._current_fps if camera_pipeline else 0,
+                        'faces_detected': camera_pipeline._faces_last_frame if camera_pipeline else 0,
+                        'resolution': f"{camera_pipeline.width}x{camera_pipeline.height}" if camera_pipeline else "N/A",
+                        'pipeline': 'InsightFace' if (camera_pipeline and camera_pipeline.is_insightface_ready) else 'MediaPipe',
+                    },
+                    'microphone': {
+                        'active': audio_pipeline._running if audio_pipeline else False,
+                        'level_db': audio_pipeline._current_level_db if audio_pipeline else -60.0,
+                        'vad_active': audio_pipeline._voice_active if audio_pipeline else False,
+                        'sample_rate': audio_pipeline.sample_rate if audio_pipeline else 0,
+                        'pipeline': 'Silero VAD',
+                    },
+                    'screen': {
+                        'active': False,
+                    },
+                }
+                await broadcast_event('device.status', status)
+
+        broadcast_task = asyncio.create_task(broadcast_device_status())
+
         # 注册信号处理
         stop_event = asyncio.Event()
 
@@ -747,6 +869,13 @@ async def main():
                 pass  # Windows 不支持 add_signal_handler
 
         await stop_event.wait()
+
+        # 取消定时广播任务
+        broadcast_task.cancel()
+        try:
+            await broadcast_task
+        except asyncio.CancelledError:
+            pass
 
     # 清理
     logger.info('Shutting down...')

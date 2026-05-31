@@ -9,12 +9,6 @@
 </head>
 <body>
 
-  <!-- 外置窗口控制条 -->
-  <div class="window-controls">
-    <button class="window-ctrl-btn" id="btn-minimize" title="最小化">─</button>
-    <button class="window-ctrl-btn close" id="btn-close" title="关闭到托盘">✕</button>
-  </div>
-
   <!-- 返回首页 -->
   <a href="index.html" class="back-home">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M15 18l-6-6 6-6"></path></svg>
@@ -41,6 +35,8 @@
             <span class="notif-preview-text" id="notifText"></span>
             <span class="notif-count" id="notifCount">0</span>
           </div>
+          <button class="window-ctrl-btn-mini" id="btn-minimize" title="最小化">─</button>
+          <button class="window-ctrl-btn-mini close" id="btn-close" title="关闭到托盘">✕</button>
         </div>
       </div>
       <div class="status-row-hw">
@@ -71,9 +67,9 @@
             <div class="particle" style="--dx:-16px;--dy:-16px"></div>
             <div class="particle" style="--dx:6px;--dy:-20px"></div>
           </div>
-          <div class="orb" id="frankOrb" title="点击与 Frank 对话"></div>
+          <div class="orb" id="frankOrb" title="点击查看识别预览"></div>
         </div>
-        <div class="agent-label" id="agentLabel"><span class="pulse-dot"></span> <span id="agentLabelText">聆听中 · 等待唤醒</span></div>
+        <div class="agent-label" id="agentLabel"><span class="pulse-dot"></span> <span id="agentLabelText" class="agent-label-clickable" title="点击对话">聆听中 · 等待唤醒</span></div>
       </div>
 
       <!-- BOTTOM: Tasks + Conversation -->

@@ -190,4 +190,60 @@ contextBridge.exposeInMainWorld('frankAPI', {
     ipcRenderer.on('settings.updated', handler);
     return () => ipcRenderer.removeListener('settings.updated', handler);
   },
+
+  // ── 预览窗口 ──
+  openPreview: () => ipcRenderer.invoke('frank:openPreview'),
+  closePreview: () => ipcRenderer.invoke('frank:closePreview'),
+
+  // ── 设备控制 ──
+  toggleCamera: () => ipcRenderer.invoke('frank:toggleCamera'),
+  toggleMicrophone: () => ipcRenderer.invoke('frank:toggleMicrophone'),
+
+  // ── 设备状态 ──
+  onDeviceStatus: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('device:status', handler);
+    return () => ipcRenderer.removeListener('device:status', handler);
+  },
+
+  // ── 任务事件 ──
+  onTaskUpdated: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('task.updated', handler);
+    return () => ipcRenderer.removeListener('task.updated', handler);
+  },
+  onTaskCompleted: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('task.completed', handler);
+    return () => ipcRenderer.removeListener('task.completed', handler);
+  },
+  onTaskFailed: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('task.failed', handler);
+    return () => ipcRenderer.removeListener('task.failed', handler);
+  },
+
+  // ── 通知事件 ──
+  onNotification: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('notification', handler);
+    return () => ipcRenderer.removeListener('notification', handler);
+  },
+
+  // ── 预览窗口数据 (仅预览窗口使用) ──
+  onPreviewFrame: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('preview.frame', handler);
+    return () => ipcRenderer.removeListener('preview.frame', handler);
+  },
+  onPreviewDetections: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('preview.detections', handler);
+    return () => ipcRenderer.removeListener('preview.detections', handler);
+  },
+  onPreviewAudioSpectrum: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('preview.audio_spectrum', handler);
+    return () => ipcRenderer.removeListener('preview.audio_spectrum', handler);
+  },
 });

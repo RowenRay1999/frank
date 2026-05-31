@@ -127,6 +127,12 @@ class AudioPipeline:
         self._on_stt_trigger: Callable | None = None  # Phase 3
         self._on_error: Callable | None = None
 
+        # 预览推送
+        self._preview_active = False
+        self._on_preview_spectrum: Callable | None = None
+        self._current_level_db = -60.0  # 当前麦克风电平 (dB)，供 device.status 广播
+        self._latest_voiceprint_matches: list = []  # 最新声纹匹配结果，供预览窗口
+
     # ─── 回调设置 ───────────────────────────────────────
 
     def set_on_voice_start(self, callback: Callable):
@@ -148,6 +154,18 @@ class AudioPipeline:
 
     def set_on_error(self, callback: Callable):
         self._on_error = callback
+
+    def set_preview_active(self, active: bool):
+        """开启/关闭预览频谱推送"""
+        self._preview_active = active
+
+    def set_on_preview_spectrum(self, callback: Callable):
+        """预览频谱数据回调（FFT bins, VAD, level, pitch）"""
+        self._on_preview_spectrum = callback
+
+    def update_voiceprint_matches(self, matches: list):
+        """由融合引擎调用，更新当前声纹匹配结果供预览窗口显示"""
+        self._latest_voiceprint_matches = matches or []
 
     # ─── 设备枚举 ───────────────────────────────────────
 
@@ -331,6 +349,48 @@ class AudioPipeline:
                 # 唤醒词检测
                 if self._wake_word_model and speech_prob > 0.3:
                     self._detect_wake_word(all_data)
+
+                # 预览频谱推送 (~20Hz)
+                if self._preview_active and self._on_preview_spectrum and self._ring_buffer and len(self._ring_buffer) >= 512:
+                    try:
+                        recent = all_data[-512:]
+                        # FFT 频谱
+                        fft = np.abs(np.fft.rfft(recent))
+                        bins = 32
+                        bin_size = len(fft) // bins
+                        spectrum = [float(np.mean(fft[i*bin_size:(i+1)*bin_size])) for i in range(bins)]
+                        # 归一化
+                        max_val = max(spectrum) if max(spectrum) > 0 else 1.0
+                        spectrum = [s / max_val for s in spectrum]
+                        # 音量电平 (dB)
+                        rms = np.sqrt(np.mean(recent ** 2))
+                        level_db = float(20 * np.log10(max(rms, 1e-6)))
+                        self._current_level_db = level_db  # 存储为实例属性供 device.status 读取
+                        # 基频估计 (简单自相关)
+                        pitch_hz = 0.0
+                        if rms > 0.01:
+                            corr = np.correlate(recent, recent, mode='full')
+                            corr = corr[len(corr)//2:]
+                            corr = corr / (corr[0] + 1e-10)
+                            peaks = np.where(corr[16:] > 0.5)[0]
+                            if len(peaks) > 0:
+                                lag = peaks[0] + 16
+                                pitch_hz = float(self.sample_rate / lag) if lag > 0 else 0.0
+                        spectrum_msg = {
+                            'spectrum_bins': spectrum,
+                            'vad_prob': float(speech_prob),
+                            'level_db': level_db,
+                            'wake_word_trigger': False,
+                            'pitch_hz': pitch_hz,
+                            'voiceprint_matches': self._latest_voiceprint_matches,
+                        }
+                        if self._main_loop and self._main_loop.is_running():
+                            asyncio.run_coroutine_threadsafe(
+                                self._on_preview_spectrum(spectrum_msg),
+                                self._main_loop
+                            )
+                    except Exception:
+                        logger.debug('Preview spectrum computation failed', exc_info=True)
 
                 time.sleep(0.01)
 

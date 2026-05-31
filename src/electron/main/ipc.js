@@ -5,7 +5,7 @@ const { ipcMain, app, dialog } = require('electron');
  * Phase 1: 基础状态同步 + 窗口控制 + 启动/停止控制
  */
 
-function createIPC(mainWindow, { sendMessage, getState }) {
+function createIPC(mainWindow, { sendMessage, getState, createPreviewWindow, closePreviewWindow }) {
   // 渲染进程请求当前状态
   ipcMain.handle('frank:getState', () => {
     return getState ? getState() : { name: 'Idle', timeInState: 0 };
@@ -66,6 +66,24 @@ function createIPC(mainWindow, { sendMessage, getState }) {
       return { confirmed: true };
     }
     return { confirmed: false };
+  });
+
+  // ── 预览窗口 IPC ──
+  ipcMain.handle('frank:openPreview', () => {
+    if (createPreviewWindow) createPreviewWindow();
+  });
+
+  ipcMain.handle('frank:closePreview', () => {
+    if (closePreviewWindow) closePreviewWindow();
+  });
+
+  // ── 设备控制 IPC ──
+  ipcMain.handle('frank:toggleCamera', () => {
+    if (sendMessage) sendMessage({ type: 'camera.toggle' });
+  });
+
+  ipcMain.handle('frank:toggleMicrophone', () => {
+    if (sendMessage) sendMessage({ type: 'microphone.toggle' });
   });
 
   return {

@@ -69,6 +69,11 @@ class CameraPipeline:
         self._on_error: Callable | None = None
         self._state_provider: Callable | None = None
 
+        # 预览推送
+        self._preview_active = False
+        self._on_preview_frame: Callable | None = None
+        self._on_preview_detections: Callable | None = None
+
     # ─── 回调设置 ───────────────────────────────────────
 
     def set_on_face_detected(self, callback: Callable):
@@ -90,6 +95,18 @@ class CameraPipeline:
 
     def set_state_provider(self, provider: Callable):
         self._state_provider = provider
+
+    def set_preview_active(self, active: bool):
+        """开启/关闭预览数据推送"""
+        self._preview_active = active
+
+    def set_on_preview_frame(self, callback: Callable):
+        """预览帧回调（JPEG base64）"""
+        self._on_preview_frame = callback
+
+    def set_on_preview_detections(self, callback: Callable):
+        """预览检测结果回调（faces, objects, pose, gesture）"""
+        self._on_preview_detections = callback
 
     @property
     def is_insightface_ready(self) -> bool:
@@ -290,6 +307,44 @@ class CameraPipeline:
                             self._on_pose_frame(frame_rgb, self.width, self.height)
                     except Exception as e:
                         logger.debug(f'Pose frame callback error: {e}')
+
+                # 预览推送
+                if self._preview_active:
+                    if self._on_preview_frame:
+                        try:
+                            import base64
+                            _, jpeg = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 75])
+                            jpeg_b64 = base64.b64encode(jpeg).decode('ascii')
+                            preview_frame = {
+                                'frame_id': int(time.time() * 1000),
+                                'jpeg_base64': jpeg_b64,
+                                'width': self.width,
+                                'height': self.height,
+                                'timestamp': time.time(),
+                            }
+                            if asyncio.iscoroutinefunction(self._on_preview_frame):
+                                await self._on_preview_frame(preview_frame)
+                            else:
+                                self._on_preview_frame(preview_frame)
+                        except Exception as e:
+                            logger.debug(f'Preview frame push error: {e}')
+
+                    if self._on_preview_detections:
+                        try:
+                            detections = {
+                                'frame_id': int(time.time() * 1000),
+                                'faces': faces,
+                                'objects': [],
+                                'pose_landmarks': None,
+                                'gesture': None,
+                                'fps': self._current_fps,
+                            }
+                            if asyncio.iscoroutinefunction(self._on_preview_detections):
+                                await self._on_preview_detections(detections)
+                            else:
+                                self._on_preview_detections(detections)
+                        except Exception as e:
+                            logger.debug(f'Preview detections push error: {e}')
 
             except asyncio.CancelledError:
                 break

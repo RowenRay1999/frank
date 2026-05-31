@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+  <title>Frank · 识别预览</title>
+  <link rel="stylesheet" href="preview.css" />
+</head>
+<body>
+
+<div class="canvas-16x9">
+
+  <!-- Vision Header -->
+  <div class="vision-header">
+    <div class="vision-header-left">
+      <span class="vision-live-dot" id="liveDot"></span>
+      <span class="vision-live-label">
+        LIVE
+        <span class="vision-algo-tag" id="algoFace">FaceNet</span>
+        <span class="vision-algo-tag" id="algoPose">Pose</span>
+        <span class="vision-algo-tag" id="algoObj">—</span>
+      </span>
+    </div>
+    <button class="vision-close" id="btnClose" title="关闭预览">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <!-- Video Canvas -->
+  <div class="vision-canvas" id="visionCanvas">
+    <div class="vision-grid"></div>
+    <canvas id="videoCanvas"></canvas>
+
+    <!-- Bottom HUD -->
+    <div class="vision-hud">
+      <div class="vision-hud-item">
+        <span>RES</span>
+        <span id="hudRes">—</span>
+      </div>
+      <div class="vision-hud-item">
+        <span>FPS</span>
+        <span id="hudFps" style="color:rgba(48,209,88,0.6);">—</span>
+      </div>
+      <div class="vision-hud-item">
+        <span>OBJ</span>
+        <span id="hudObj">0</span>
+      </div>
+      <div class="vision-hud-item">
+        <span>FACE</span>
+        <span id="hudFace" style="color:oklch(72% 0.22 55 / 70%);">0</span>
+      </div>
+    </div>
+
+    <!-- Waveform mini-overlay (visible when audio panel collapsed) -->
+    <div class="waveform-overlay visible" id="waveformOverlay">
+      <span class="waveform-overlay-label">AUDIO</span>
+      <div id="overlayBars" style="display:flex;align-items:center;gap:2px;flex:1;"></div>
+      <span class="overlay-expand-hint" id="overlayExpandHint">▲ 展开</span>
+    </div>
+  </div>
+
+  <!-- Audio Section -->
+  <div class="vision-audio" id="audioPanel">
+    <div class="audio-tabs">
+      <button class="audio-collapse-btn" id="audioCollapseBtn" title="折叠音频面板">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="audio-tab active" data-tab="waveform">波形图</div>
+      <div class="audio-tab" data-tab="voiceprint">声纹匹配</div>
+      <div class="audio-tab" data-tab="levels">电平监测</div>
+    </div>
+
+    <div class="audio-content">
+      <!-- Waveform panel -->
+      <div class="audio-panel active" id="audio-waveform">
+        <div class="waveform-container" id="waveformBars"></div>
+        <div style="display:flex;justify-content:space-between;padding:0 var(--space-4);font-family:var(--font-mono);font-size:10px;color:var(--muted);">
+          <span>20 Hz</span><span>250</span><span>1k</span><span>4k</span><span>16k</span>
+        </div>
+      </div>
+
+      <!-- Voiceprint panel -->
+      <div class="audio-panel" id="audio-voiceprint">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:var(--space-2) 0;letter-spacing:0.04em;">声纹特征匹配</div>
+        <div class="voiceprint-spectrum" id="voiceprintSpectrum"></div>
+        <div id="voiceprintMatches"></div>
+      </div>
+
+      <!-- Levels panel -->
+      <div class="audio-panel" id="audio-levels">
+        <div class="level-meter">
+          <span class="level-meter-label">输入</span>
+          <div class="level-meter-track"><div class="level-meter-fill" id="inputMeter"></div></div>
+        </div>
+        <div class="level-meter">
+          <span class="level-meter-label">VAD</span>
+          <div class="level-meter-track"><div class="level-meter-fill" id="vadMeter" style="background:oklch(58% 0.15 165);"></div></div>
+        </div>
+        <div style="display:flex;gap:var(--space-3);padding-top:var(--space-4);">
+          <span class="vision-algo-tag">16kHz · mono</span>
+          <span class="vision-algo-tag">Silero VAD</span>
+          <span class="vision-algo-tag" id="noiseTag" style="background:rgba(48,209,88,0.10);color:var(--success);">降噪活跃</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Algorithm pipeline footer -->
+    <div class="algo-pipeline">
+      <span class="algo-step active" data-step="capture">采集</span>
+      <span class="algo-arrow">→</span>
+      <span class="algo-step" data-step="vad">VAD</span>
+      <span class="algo-arrow">→</span>
+      <span class="algo-step" data-step="voiceprint">声纹</span>
+      <span class="algo-arrow">→</span>
+      <span class="algo-step" data-step="match">比对</span>
+      <span class="algo-arrow">→</span>
+      <span class="algo-step" data-step="identity">确认</span>
+      <span class="algo-latency" id="algoLatency">延迟 —ms</span>
+    </div>
+  </div>
+
+</div><!-- /canvas-16x9 -->
+
+<script src="preview.js"></script>
+</body>
+</html>
