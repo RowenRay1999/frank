@@ -89,6 +89,33 @@ class MemberManager:
         self._registration: RegistrationSession | None = None
         self._on_registration_update: Callable | None = None
 
+    @staticmethod
+    def get_stats() -> dict:
+        """获取成员统计：成员总数 + 总访问量"""
+        from src.python.shared.database import get_member_stats
+        return get_member_stats()
+
+    @staticmethod
+    def get_member_info(member_id: str) -> dict | None:
+        """获取单个成员完整信息"""
+        from src.python.shared.database import get_member_by_id
+        return get_member_by_id(member_id)
+
+    @staticmethod
+    def get_member_history(member_id: str, max_age_days: int | None = None) -> dict:
+        """获取成员指令历史记录
+
+        Args:
+            member_id: 成员 ID
+            max_age_days: 最大保留天数，None 表示无限期
+
+        Returns:
+            {'items': [{type, timestamp, summary, detail}, ...]}
+        """
+        from src.python.shared.database import get_member_history as db_get_history
+        items = db_get_history(member_id, max_age_days)
+        return {'items': items}
+
     def set_on_registration_update(self, callback: Callable):
         self._on_registration_update = callback
 
@@ -329,7 +356,3 @@ class MemberManager:
                 "UPDATE unidentified SET face_thumbnail = ? WHERE id = ?",
                 (thumbnail_path, unid_id)
             )
-
-    @staticmethod
-    def get_stats() -> dict:
-        return get_database_stats()

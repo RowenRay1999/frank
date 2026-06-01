@@ -70,12 +70,15 @@ function formatTime(ts) {
   const d = typeof ts === 'number' ? new Date(ts * 1000) : new Date(ts);
   if (isNaN(d.getTime())) return '—';
   const diff = (Date.now() - d.getTime()) / 1000;
+  if (diff < 0) return '—';
   if (diff < 60) return '刚刚';
   if (diff < 3600) return `${Math.floor(diff / 60)} 分钟前`;
   if (diff < 86400) return `${Math.floor(diff / 3600)} 小时前`;
   if (diff < 604800) return `${Math.floor(diff / 86400)} 天前`;
   return d.toLocaleDateString('zh-CN');
 }
+function escAttr(s) { return String(s||'').replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
+function escHtml(s) { return String(s||'').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 
 // ─── Orb ───────────────────────────────────────────────────
 function setOrbState(state) {
@@ -162,7 +165,6 @@ function openPanel(name) {
     roleInfo: 'roleInfoPanel',
     notifications: 'notifPanel',
     settings: 'settingsPanel',
-    members: 'membersPanel',
     chat: 'chatOverlay',
   };
   const id = map[name] || name;
@@ -341,6 +343,188 @@ async function loadDeviceLists() {
 }
 
 // ═══════════════════════════════════════════════════════════
+// VIEW ROUTING (main ↔ memberManagement)
+// ═══════════════════════════════════════════════════════════
+let currentView = 'main';
+
+function navigateTo(view) {
+  currentView = view;
+  const mainStage = document.querySelector('.main-stage');
+  const mmgView = $('memberManagementView');
+  if (mainStage) mainStage.classList.toggle('hidden', view !== 'main');
+  if (mmgView) mmgView.classList.toggle('hidden', view !== 'memberManagement');
+  if (view === 'memberManagement') {
+    loadMemberManagementPage();
+  }
+}
+
+function loadMemberManagementPage() {
+  window.frankAPI?.sendMessage?.({ type: 'member.list' });
+  window.frankAPI?.sendMessage?.({ type: 'member.stats' });
+}
+
+function renderMemberManagementList(members) {
+  if (currentView !== 'memberManagement') return;
+  const list = $('memberMgmtList');
+  const empty = $('memberMgmtEmpty');
+  if (!list) return;
+  list.innerHTML = '';
+  if (!members || !members.length) {
+    if (empty) empty.classList.remove('hidden');
+    return;
+  }
+  if (empty) empty.classList.add('hidden');
+
+  members.forEach(m => {
+    const badge = getRoleBadge(m.role);
+    const roleName = getRoleName(m.role);
+
+    const faceThumb = m.face_thumbnail
+      ? `<img src="file:///${String(m.face_thumbnail).replace(/\\/g, '/').replace(/"/g, '&quot;')}" onerror="this.parentElement.innerHTML='<span class=face-placeholder>${badge}</span>'" />`
+      : `<span class="face-placeholder">${badge}</span>`;
+
+    let spectrumBars = '';
+    if (m.voiceprint_spectrum) {
+      try {
+        const bins = typeof m.voiceprint_spectrum === 'string'
+          ? JSON.parse(m.voiceprint_spectrum) : m.voiceprint_spectrum;
+        spectrumBars = (bins || []).slice(0, 9).map(v => {
+          const h = Number(v) * 48;
+          if (isNaN(h) || !isFinite(h)) return '';
+          return `<div class="voiceprint-mini-bar" style="height:${Math.max(2, h)}px"></div>`;
+        }).filter(Boolean).join('');
+      } catch (_) {}
+    }
+
+    const memberId = m.member_id || m.id || '';
+    const div = document.createElement('div');
+    div.className = 'member-mgmt-item';
+    div.dataset.memberId = memberId;
+    div.innerHTML = `
+      <div class="member-mgmt-face">${faceThumb}</div>
+      <div class="member-mgmt-spectrum">
+        ${spectrumBars || '<span style="font-size:7px;color:var(--muted);margin:auto;">—</span>'}
+      </div>
+      <div class="member-mgmt-info">
+        <span class="member-mgmt-name">${escHtml(m.display_name) || '未知'}</span>
+        <span class="member-mgmt-role">${badge} ${roleName}</span>
+      </div>
+      <div class="member-mgmt-meta">${formatTime(m.last_active_at)}</div>`;
+    div.addEventListener('click', () => openMemberDetail(memberId));
+    list.appendChild(div);
+  });
+}
+
+function renderMemberManagementStats(stats) {
+  const countEl = $('statMembersCount');
+  const visitsEl = $('statTotalVisits');
+  if (countEl) countEl.textContent = stats.members_count ?? 0;
+  if (visitsEl) visitsEl.textContent = stats.total_visits ?? 0;
+}
+
+// ═══════════════════════════════════════════════════════════
+// MEMBER DETAIL MODAL
+// ═══════════════════════════════════════════════════════════
+let _currentDetailMemberId = null;
+
+function openMemberDetail(memberId) {
+  _currentDetailMemberId = memberId;
+  window.frankAPI?.sendMessage?.({ type: 'member.info', payload: { member_id: memberId } });
+  window.frankAPI?.sendMessage?.({ type: 'member.history', payload: { member_id: memberId } });
+  $('memberDetailOverlay')?.classList.remove('hidden');
+}
+
+function closeMemberDetail() {
+  $('memberDetailOverlay')?.classList.add('hidden');
+  _currentDetailMemberId = null;
+}
+
+function renderMemberDetailModal(member) {
+  const badge = getRoleBadge(member.role);
+  const faceThumb = member.face_thumbnail
+    ? `<img src="file:///${String(member.face_thumbnail).replace(/\\/g, '/').replace(/"/g, '&quot;')}" onerror="this.parentElement.innerHTML='<span class=face-placeholder>${badge}</span>'" />`
+    : `<span class="face-placeholder">${badge}</span>`;
+
+  const faceEl = $('detailFace');
+  if (faceEl) faceEl.innerHTML = faceThumb;
+  const nameEl = $('detailName');
+  if (nameEl) nameEl.textContent = member.display_name || '未知';
+  const roleEl = $('detailRole');
+  if (roleEl) roleEl.textContent = `${badge} ${getRoleName(member.role)}`;
+  const confEl = $('detailConfidence');
+  if (confEl) confEl.textContent = member.last_recognized_at ? `最后识别: ${formatTime(member.last_recognized_at)}` : '';
+
+  const recogEl = $('detailRecogConfidence');
+  if (recogEl) recogEl.textContent = member.recognition_confidence ? `${(member.recognition_confidence * 100).toFixed(0)}%` : '—';
+  const createdEl = $('detailCreatedAt');
+  if (createdEl) createdEl.textContent = member.created_at ? formatTime(member.created_at) : '—';
+  const activeEl = $('detailLastActive');
+  if (activeEl) activeEl.textContent = member.last_active_at ? formatTime(member.last_active_at) : '—';
+  const countEl = $('detailAppearanceCount');
+  if (countEl) countEl.textContent = member.appearance_count ?? '—';
+}
+
+// ═══════════════════════════════════════════════════════════
+// HISTORY MODAL
+// ═══════════════════════════════════════════════════════════
+let _currentHistoryItems = [];
+let _currentHistoryFilter = 'all';
+
+function openHistoryModal() {
+  $('historyOverlay')?.classList.remove('hidden');
+  const titleEl = $('historyTitle');
+  if (titleEl && _currentDetailMemberId) {
+    titleEl.textContent = `历史指令记录 — ${_currentDetailMemberId.substring(0, 8)}`;
+  }
+  if (_currentDetailMemberId) {
+    window.frankAPI?.sendMessage?.({ type: 'member.history', payload: { member_id: _currentDetailMemberId } });
+  }
+}
+
+function closeHistoryModal() {
+  $('historyOverlay')?.classList.add('hidden');
+}
+
+function renderHistoryTimeline(items) {
+  _currentHistoryItems = items || [];
+  _currentHistoryFilter = 'all';
+  applyHistoryFilter();
+}
+
+function applyHistoryFilter() {
+  const filtered = _currentHistoryFilter === 'all'
+    ? _currentHistoryItems
+    : _currentHistoryItems.filter(item => item.type === _currentHistoryFilter);
+
+  const timeline = $('historyTimeline');
+  const empty = $('historyEmpty');
+  if (!timeline) return;
+
+  if (!filtered.length) {
+    if (empty) empty.classList.remove('hidden');
+    timeline.querySelectorAll('.history-item').forEach(el => el.remove());
+    return;
+  }
+  if (empty) empty.classList.add('hidden');
+
+  timeline.innerHTML = filtered.map(item => {
+    const icon = item.type === 'conversation' ? '💬' : '📋';
+    const typeLabel = item.type === 'conversation' ? '对话' : '任务';
+    return `
+      <div class="history-item">
+        <div class="history-item-type">${icon}</div>
+        <div class="history-item-body">
+          <span class="history-item-summary">${escHtml(item.summary) || '(无摘要)'}</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span class="history-item-time">${formatTime(item.timestamp)}</span>
+            <span style="font-size:10px;color:var(--muted);">${typeLabel}</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
 // MEMBERS PANEL
 // ═══════════════════════════════════════════════════════════
 function refreshMemberPanel() {
@@ -378,37 +562,7 @@ function renderPendingList(pending) {
   });
 }
 
-// Event delegation for member lists
-$('memberList')?.addEventListener('click', (e) => {
-  const btn = e.target.closest('button');
-  if (!btn) return;
-  if (btn.dataset.action === 'delete') {
-    if (confirm('确定要删除该成员吗？')) {
-      window.frankAPI?.sendMessage?.({ type: 'member.delete', payload: { member_id: btn.dataset.id } });
-      setTimeout(refreshMemberPanel, 500);
-    }
-  } else if (btn.dataset.action === 'edit') {
-    window.frankAPI?.sendMessage?.({ type: 'member.register_info', payload: { member_id: btn.dataset.id } });
-  }
-});
-
-$('pendingList')?.addEventListener('click', (e) => {
-  const btn = e.target.closest('button');
-  if (!btn) return;
-  if (btn.dataset.action === 'identify') openIdentifyDialog(btn.dataset.id);
-});
-
-function openIdentifyDialog(unidentifiedId) {
-  const name = prompt('请输入该成员显示名称（2-20 字符）：');
-  if (!name || name.length < 2 || name.length > 20) { if (name) showToast('名称长度需在 2-20 个字符之间', 'error'); return; }
-  const role = prompt('请选择角色（admin / member / guest）：', 'guest');
-  if (!['admin','member','guest'].includes(role?.toLowerCase())) { showToast('角色必须为 admin、member 或 guest', 'error'); return; }
-  window.frankAPI?.sendMessage?.({ type: 'member.identify', payload: { unidentified_id: unidentifiedId, display_name: name, role: role.toLowerCase() } });
-  setTimeout(refreshMemberPanel, 500);
-}
-
-$('btnAddMember')?.addEventListener('click', () => openWizard());
-$('btnAddMemberIdentity')?.addEventListener('click', () => openWizard());
+$('btnAddMemberIdentity')?.addEventListener('click', () => navigateTo('memberManagement'));
 
 // ═══════════════════════════════════════════════════════════
 // PERSONA / IDENTITY PANEL
@@ -483,7 +637,7 @@ function applyFilter() {
     const roleName = getRoleName(role);
 
     const faceThumb = p.face_thumbnail
-      ? `<img src="${String(p.face_thumbnail).replace(/"/g, '&quot;')}" onerror="this.parentElement.innerHTML='<span class=face-placeholder>${badge}</span>'" />`
+      ? `<img src="file:///${String(p.face_thumbnail).replace(/\\/g, '/').replace(/"/g, '&quot;')}" onerror="this.parentElement.innerHTML='<span class=face-placeholder>${badge}</span>'" />`
       : `<span class="face-placeholder">${badge}</span>`;
 
     let spectrumBars = '';
@@ -506,7 +660,7 @@ function applyFilter() {
         ${spectrumBars || '<span style="font-size:8px;color:var(--muted);margin:auto;">待采集</span>'}
       </div>
       <div class="identity-info">
-        <div class="identity-info-name">${p.display_name || '未知'}</div>
+        <div class="identity-info-name">${escHtml(p.display_name) || '未知'}</div>
         <div class="identity-info-role">${badge} ${roleName}</div>
         <div class="identity-info-meta">
           ${isIdentified
@@ -516,30 +670,89 @@ function applyFilter() {
       </div>
       <div class="identity-actions">
         ${isIdentified
-          ? `<button class="identity-action-btn" data-action="edit-person" data-id="${(p.member_id || p.id || '').replace(/"/g, '&quot;')}">✏️</button>`
-          : `<button class="identity-action-btn primary" data-action="identify-person" data-id="${(p.id || '').replace(/"/g, '&quot;')}">标识</button>`}
+          ? `<button class="identity-action-btn" onclick="openIdentifyDialog({mode:'edit',id:'${escAttr(p.member_id||p.id||'')}',name:'${escAttr(p.display_name||'')}',role:'${escAttr(p.role||'member')}'})">✏️</button>`
+          : `<button class="identity-action-btn primary" onclick="openIdentifyDialog({mode:'identify',id:'${escAttr(p.id||'')}'})">标识</button>`}
       </div>
     </div>`;
   }).join('');
 }
 
-function editPerson(memberId) {
-  const name = prompt('修改显示名称（2-20 字符）：');
-  if (!name || name.length < 2 || name.length > 20) { if (name) showToast('名称长度需在 2-20 个字符之间', 'error'); return; }
-  const role = prompt('选择角色（admin / member / guest）：', 'member');
-  if (!['admin', 'member', 'guest'].includes(role?.toLowerCase())) { showToast('角色无效', 'error'); return; }
-  window.frankAPI?.sendMessage?.({ type: 'member.update', payload: { member_id: memberId, display_name: name, role: role.toLowerCase() } });
-  setTimeout(loadPersonaPanel, 500);
+// ─── Identity dialog ──────────────────────────────────────
+let _identifyDialogState = { mode: 'identify', id: '' };
+
+function openIdentifyDialog(opts) {
+  // Support both old API: openIdentifyDialog(idString) and new API: openIdentifyDialog({mode, id, name, role})
+  if (!opts) return;
+  if (typeof opts === 'string') {
+    opts = { mode: 'identify', id: opts };
+  }
+  _identifyDialogState = opts;
+  const overlay = $('identifyOverlay');
+  const title = $('identifyTitle');
+  const nameInput = $('identifyName');
+  const confirmBtn = $('identifyConfirm');
+
+  if (!overlay) return;
+
+  nameInput.value = opts.name || '';
+  if (opts.role) {
+    const radio = document.querySelector(`input[name="identifyRole"][value="${opts.role}"]`);
+    if (radio) { radio.checked = true; }
+    else {
+      // Role not in radio group (e.g., 'owner') — fall back to member
+      const fallback = document.querySelector('input[name="identifyRole"][value="member"]');
+      if (fallback) fallback.checked = true;
+    }
+  } else {
+    const def = document.querySelector('input[name="identifyRole"][value="member"]');
+    if (def) def.checked = true;
+  }
+  $('identifyNameError')?.classList.add('hidden');
+
+  if (opts.mode === 'edit') {
+    title.textContent = '编辑成员';
+    confirmBtn.textContent = '保存修改';
+  } else {
+    title.textContent = '标识访客';
+    confirmBtn.textContent = '确认标识';
+  }
+
+  overlay.classList.remove('hidden');
+  setTimeout(() => nameInput.focus(), 100);
 }
 
-function identifyPerson(unidentifiedId) {
-  const name = prompt('请输入该成员显示名称（2-20 字符）：');
-  if (!name || name.length < 2 || name.length > 20) { if (name) showToast('名称长度需在 2-20 个字符之间', 'error'); return; }
-  const role = prompt('请选择角色（admin / member / guest）：', 'guest');
-  if (!['admin', 'member', 'guest'].includes(role?.toLowerCase())) { showToast('角色必须为 admin、member 或 guest', 'error'); return; }
-  window.frankAPI?.sendMessage?.({ type: 'member.identify', payload: { unidentified_id: unidentifiedId, display_name: name, role: role.toLowerCase() } });
-  setTimeout(loadPersonaPanel, 500);
+function closeIdentifyDialog() {
+  $('identifyOverlay')?.classList.add('hidden');
 }
+
+function submitIdentify() {
+  const name = $('identifyName')?.value.trim();
+  const roleRadio = document.querySelector('input[name="identifyRole"]:checked');
+  const role = roleRadio?.value || 'member';
+  const errorEl = $('identifyNameError');
+
+  if (!name || name.length < 2 || name.length > 20) {
+    if (errorEl) { errorEl.textContent = '名称长度需在 2-20 个字符之间'; errorEl.classList.remove('hidden'); }
+    return;
+  }
+  if (errorEl) errorEl.classList.add('hidden');
+
+  const { mode, id } = _identifyDialogState;
+  if (mode === 'edit') {
+    window.frankAPI?.sendMessage?.({ type: 'member.update', payload: { member_id: id, display_name: name, role: role } });
+  } else {
+    window.frankAPI?.sendMessage?.({ type: 'member.identify', payload: { unidentified_id: id, display_name: name, role: role } });
+  }
+
+  closeIdentifyDialog();
+  setTimeout(() => { loadPersonaPanel(); refreshMemberPanel(); }, 500);
+}
+
+// Dialog button wiring
+$('identifyClose')?.addEventListener('click', closeIdentifyDialog);
+$('identifyCancel')?.addEventListener('click', closeIdentifyDialog);
+$('identifyConfirm')?.addEventListener('click', submitIdentify);
+$('identifyName')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') submitIdentify(); });
 
 // ─── Role Info Panel ──────────────────────────────────────
 function loadRoleInfoPanel() {
@@ -728,13 +941,14 @@ if (window.frankAPI) {
     cachedMembers = data?.members || [];
     schedulePersonListRender();
     renderMemberList(cachedMembers);
+    renderMemberManagementList(cachedMembers);
   });
   window.frankAPI.onMemberPending(data => {
     cachedPending = data?.pending || [];
     schedulePersonListRender();
     renderPendingList(cachedPending);
   });
-  window.frankAPI.onMemberRegistered(() => { showToast('成员注册成功！','success'); refreshMemberPanel(); });
+  window.frankAPI.onMemberRegistered(() => { showToast('成员注册成功！','success'); loadMemberManagementPage(); loadPersonaPanel(); });
   window.frankAPI.onRoleList?.(data => {
     if (data?.roles) {
       if (PanelManager.isOpen($('roleInfoPanel'))) renderRoleInfoPanel(data.roles);
@@ -824,6 +1038,31 @@ if (window.frankAPI) {
       }
     }
   });
+
+  // ── 成员管理 IPC ──
+  window.frankAPI.onMemberStats?.(data => {
+    renderMemberManagementStats(data);
+  });
+  window.frankAPI.onMemberInfo?.(data => {
+    if (data?.member) renderMemberDetailModal(data.member);
+  });
+  window.frankAPI.onMemberHistory?.(data => {
+    if (data?.items) renderHistoryTimeline(data.items);
+  });
+  window.frankAPI.onMemberUpdated?.(data => {
+    showToast('成员信息已更新', 'success');
+    closeMemberDetail();
+    window.frankAPI?.sendMessage?.({ type: 'member.list' });
+    window.frankAPI?.sendMessage?.({ type: 'member.pending' });
+    window.frankAPI?.sendMessage?.({ type: 'member.stats' });
+  });
+  window.frankAPI.onMemberDeleted?.(() => {
+    showToast('成员已删除', 'success');
+    closeMemberDetail();
+    window.frankAPI?.sendMessage?.({ type: 'member.list' });
+    window.frankAPI?.sendMessage?.({ type: 'member.pending' });
+    window.frankAPI?.sendMessage?.({ type: 'member.stats' });
+  });
 }
 
 // ─── Role info button ────────────────────────────────────
@@ -843,13 +1082,10 @@ $('identityFilters')?.addEventListener('click', (e) => {
   applyFilter();
 });
 
-// ─── Identity list action delegation ─────────────────────
+// ─── Identity list delegation (fallback) ─────────────────
 $('identityList')?.addEventListener('click', (e) => {
-  const btn = e.target.closest('.identity-action-btn');
-  if (!btn) return;
-  e.stopPropagation();
-  if (btn.dataset.action === 'edit-person') editPerson(btn.dataset.id);
-  else if (btn.dataset.action === 'identify-person') identifyPerson(btn.dataset.id);
+  // Inline onclick handlers are used for identity action buttons;
+  // this listener is reserved for future event-delegation migration.
 });
 
 // ─── Chip click handlers ─────────────────────────────────
@@ -889,3 +1125,46 @@ function updateInlineConversation(topic, meta, bubbles) {
     convoBubbles.innerHTML = bubbles.map(b => `<div class="convo-bubble ${b.role==='user'?'user':'frank'}"><div class="convo-bubble-sender">${b.sender||'Frank'}</div>${b.text||''}<div class="convo-bubble-time">${b.time||''}</div></div>`).join('');
   }
 }
+
+// ─── Member detail modal buttons ─────────────────────────
+$('btnDetailClose')?.addEventListener('click', closeMemberDetail);
+$('memberDetailOverlay')?.addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeMemberDetail();
+});
+$('btnDetailHistory')?.addEventListener('click', openHistoryModal);
+$('btnDetailEdit')?.addEventListener('click', () => {
+  if (!_currentDetailMemberId) return;
+  const member = cachedMembers?.find(m => (m.member_id || m.id) === _currentDetailMemberId);
+  if (member) {
+    openIdentifyDialog({
+      mode: 'edit',
+      id: _currentDetailMemberId,
+      name: member.display_name || '',
+      role: member.role || 'member'
+    });
+  }
+});
+$('btnDetailDelete')?.addEventListener('click', () => {
+  if (!_currentDetailMemberId) return;
+  if (confirm('确定要移除该成员吗？此操作不可恢复。')) {
+    window.frankAPI?.sendMessage?.({ type: 'member.delete', payload: { member_id: _currentDetailMemberId } });
+  }
+});
+
+// ─── History modal buttons ───────────────────────────────
+$('btnHistoryClose')?.addEventListener('click', closeHistoryModal);
+$('historyOverlay')?.addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeHistoryModal();
+});
+$('historyFilterBar')?.addEventListener('click', (e) => {
+  const btn = e.target.closest('.history-filter');
+  if (!btn) return;
+  document.querySelectorAll('.history-filter').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  _currentHistoryFilter = btn.dataset.type;
+  applyHistoryFilter();
+});
+
+// ─── Member management view buttons ──────────────────────
+$('btnMemberMgmtBack')?.addEventListener('click', () => navigateTo('main'));
+$('btnMemberMgmtAdd')?.addEventListener('click', openWizard);

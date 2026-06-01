@@ -6,6 +6,10 @@ const WebSocket = require('ws');
 const { loadConfig } = require('./config');
 const { createIPC } = require('./ipc');
 
+// 设置 Chromium 语言为 zh-CN，避免 DevTools 因语言不匹配
+// 触发 "Unknown VE context: language-mismatch" 内部错误
+app.commandLine.appendSwitch('lang', 'zh-CN');
+
 // ─── 全局状态 ───────────────────────────────────────────
 let mainWindow = null;
 let tray = null;
@@ -240,6 +244,10 @@ function handleMessage(msg) {
     case 'member.pending':
     case 'member.identified':
     case 'member.deleted':
+    case 'member.updated':
+    case 'member.stats':
+    case 'member.info':
+    case 'member.history':
     case 'member.register_started':
     case 'member.register_info_ok':
     case 'member.register_cancelled':

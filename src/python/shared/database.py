@@ -28,7 +28,7 @@ logger = logging.getLogger('frank.database')
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 DEFAULT_DB_PATH = PROJECT_ROOT / 'data' / 'frank.db'
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 # 线程锁（SQLite 单写多读模式）
 _db_lock = threading.Lock()
@@ -229,6 +229,27 @@ def init_database():
                 except Exception:
                     pass
 
+        if current_version < 4:
+            logger.info('Running schema migration to version 4 (command_history)...')
+            try:
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS command_history (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        member_id TEXT NOT NULL,
+                        type TEXT NOT NULL CHECK(type IN ('conversation', 'task')),
+                        timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+                        summary TEXT NOT NULL DEFAULT '',
+                        detail TEXT NOT NULL DEFAULT '',
+                        FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+                    )
+                """)
+                conn.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_cmd_history_member
+                    ON command_history(member_id, timestamp)
+                """)
+            except Exception as e:
+                logger.warning(f'Schema v4 migration partially failed: {e}')
+
         if current_version < SCHEMA_VERSION:
             conn.execute(
                 "INSERT OR REPLACE INTO schema_version (version) VALUES (?)",
@@ -368,6 +389,67 @@ def list_all_members() -> list[dict]:
             "SELECT * FROM members WHERE labeled = 1 ORDER BY role, display_name"
         ).fetchall()
     return [_row_to_json_dict(r) for r in rows]
+
+
+def get_member_by_id(member_id: str) -> dict | None:
+    """按 ID 查询单成员（JSON 安全：排除 BLOB 列）"""
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT * FROM members WHERE id = ?", (member_id,)
+        ).fetchone()
+    if row is None:
+        return None
+    return _row_to_json_dict(row)
+
+
+def get_member_history(member_id: str, max_age_days: int | None = None) -> list[dict]:
+    """查询成员的指令历史记录
+
+    Args:
+        member_id: 成员 ID
+        max_age_days: 最大保留天数，None 表示无限期
+    """
+    with get_connection() as conn:
+        if max_age_days is not None:
+            rows = conn.execute(
+                """SELECT id, member_id, type, timestamp, summary, detail
+                   FROM command_history
+                   WHERE member_id = ?
+                     AND timestamp >= datetime('now', ?)
+                   ORDER BY timestamp DESC""",
+                (member_id, f'-{max_age_days} days')
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                """SELECT id, member_id, type, timestamp, summary, detail
+                   FROM command_history
+                   WHERE member_id = ?
+                   ORDER BY timestamp DESC""",
+                (member_id,)
+            ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def insert_command_history(member_id: str, cmd_type: str, summary: str, detail: str = ''):
+    """写入一条指令历史记录"""
+    with get_connection() as conn:
+        conn.execute(
+            """INSERT INTO command_history (member_id, type, summary, detail)
+               VALUES (?, ?, ?, ?)""",
+            (member_id, cmd_type, summary, detail)
+        )
+
+
+def get_member_stats() -> dict:
+    """获取成员统计信息"""
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT COUNT(*) as c, COALESCE(SUM(appearance_count), 0) as total_visits FROM members WHERE labeled = 1"
+        ).fetchone()
+    return {
+        'members_count': row['c'] if row else 0,
+        'total_visits': row['total_visits'] if row else 0,
+    }
 
 
 def list_unidentified() -> list[dict]:

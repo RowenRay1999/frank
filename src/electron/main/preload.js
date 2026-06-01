@@ -102,6 +102,36 @@ contextBridge.exposeInMainWorld('frankAPI', {
     return () => ipcRenderer.removeListener('member.identified', handler);
   },
 
+  onMemberStats: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('member.stats', handler);
+    return () => ipcRenderer.removeListener('member.stats', handler);
+  },
+
+  onMemberInfo: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('member.info', handler);
+    return () => ipcRenderer.removeListener('member.info', handler);
+  },
+
+  onMemberHistory: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('member.history', handler);
+    return () => ipcRenderer.removeListener('member.history', handler);
+  },
+
+  onMemberUpdated: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('member.updated', handler);
+    return () => ipcRenderer.removeListener('member.updated', handler);
+  },
+
+  onMemberDeleted: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('member.deleted', handler);
+    return () => ipcRenderer.removeListener('member.deleted', handler);
+  },
+
   // ── Phase 3: Chat events ──
   onChatSubState: (callback) => {
     const handler = (_event, data) => callback(data);

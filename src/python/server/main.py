@@ -206,8 +206,12 @@ async def handle_message(websocket, raw_msg: str):
                 await send_message(websocket, 'member.list', {'members': members}, msg_id)
 
             case 'member.pending':
-                pending = member_manager.list_pending() if member_manager else []
-                await send_message(websocket, 'member.pending', {'pending': pending}, msg_id)
+                try:
+                    pending = member_manager.list_pending() if member_manager else []
+                    await send_message(websocket, 'member.pending', {'pending': pending}, msg_id)
+                except Exception as e:
+                    logger.error(f'member.pending failed: {e}')
+                    await send_message(websocket, 'member.pending', {'pending': [], '_error': str(e)}, msg_id)
 
             case 'member.register_start':
                 if member_manager:
@@ -244,6 +248,56 @@ async def handle_message(websocket, raw_msg: str):
                     await send_message(websocket, 'member.deleted', {}, msg_id)
                 else:
                     await send_error(websocket, 'MEM_NOT_INIT', '成员模块未初始化', True, '', msg_id)
+
+            case 'member.update':
+                if member_manager and payload.get('member_id'):
+                    member_manager.update_member_info(
+                        payload['member_id'],
+                        display_name=payload.get('display_name'),
+                        role=payload.get('role'))
+                    updated = member_manager.get_member_info(payload['member_id'])
+                    await send_message(websocket, 'member.updated', {'member': updated}, msg_id)
+                else:
+                    await send_error(websocket, 'MEM_NOT_INIT', '成员模块未初始化或缺少 member_id', True, '', msg_id)
+
+            case 'member.stats':
+                try:
+                    stats = member_manager.get_stats() if member_manager else {}
+                    await send_message(websocket, 'member.stats', stats, msg_id)
+                except Exception as e:
+                    logger.error(f'member.stats failed: {e}')
+                    await send_error(websocket, 'STATS_FAILED', str(e), True, '', msg_id)
+
+            case 'member.info':
+                try:
+                    if not member_manager or not payload.get('member_id'):
+                        await send_error(websocket, 'BAD_REQUEST', '缺少 member_id', True, '', msg_id)
+                        return
+                    info = member_manager.get_member_info(payload['member_id'])
+                    if info is None:
+                        await send_error(websocket, 'NOT_FOUND', f'成员不存在: {payload["member_id"]}', True, '', msg_id)
+                        return
+                    await send_message(websocket, 'member.info', {'member': info}, msg_id)
+                except Exception as e:
+                    logger.error(f'member.info failed: {e}')
+                    await send_error(websocket, 'INFO_FAILED', str(e), True, '', msg_id)
+
+            case 'member.history':
+                try:
+                    if not member_manager or not payload.get('member_id'):
+                        await send_error(websocket, 'BAD_REQUEST', '缺少 member_id', True, '', msg_id)
+                        return
+                    info = member_manager.get_member_info(payload['member_id'])
+                    if info is None:
+                        await send_error(websocket, 'NOT_FOUND', f'成员不存在: {payload["member_id"]}', True, '', msg_id)
+                        return
+                    role = info.get('role', 'guest')
+                    days = None if role in ('owner', 'admin') else 120
+                    history = member_manager.get_member_history(payload['member_id'], days)
+                    await send_message(websocket, 'member.history', history, msg_id)
+                except Exception as e:
+                    logger.error(f'member.history failed: {e}')
+                    await send_error(websocket, 'HISTORY_FAILED', str(e), True, '', msg_id)
 
             # ── 身份查询 (Phase 2) ──
             case 'identity.get':
@@ -546,8 +600,8 @@ async def on_identity_confirmed(identity: dict):
                 filename = f"{identity['member_id']}_{int(time.time())}.jpg"
                 filepath = faces_dir / filename
                 filepath.write_bytes(jpeg_bytes)
-                relative_path = f"data/faces/{filename}"
-                member_manager.update_face_thumbnail(identity['member_id'], relative_path)
+                # 存储绝对路径，前端转为 file:// URL 即可加载
+                member_manager.update_face_thumbnail(identity['member_id'], str(filepath.absolute()))
         except Exception as e:
             logger.debug(f'Face thumbnail save error: {e}')
 
