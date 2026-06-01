@@ -362,21 +362,21 @@ def delete_member(member_id: str):
 
 
 def list_all_members() -> list[dict]:
-    """列出所有已标识成员"""
+    """列出所有已标识成员（JSON 安全：排除 BLOB 列）"""
     with get_connection() as conn:
         rows = conn.execute(
             "SELECT * FROM members WHERE labeled = 1 ORDER BY role, display_name"
         ).fetchall()
-    return [_row_to_dict(r) for r in rows]
+    return [_row_to_json_dict(r) for r in rows]
 
 
 def list_unidentified() -> list[dict]:
-    """列出所有未标识人物"""
+    """列出所有未标识人物（JSON 安全：排除 BLOB 列）"""
     with get_connection() as conn:
         rows = conn.execute(
             "SELECT * FROM unidentified ORDER BY last_seen_at DESC"
         ).fetchall()
-    return [_row_to_dict(r) for r in rows]
+    return [_row_to_json_dict(r) for r in rows]
 
 
 # ─── 相似度搜索 ────────────────────────────────────────────
@@ -627,6 +627,17 @@ def _row_to_dict(row: sqlite3.Row) -> dict:
     """将 sqlite3.Row 转为 dict"""
     d = dict(row)
     # 不反序列化 embedding（按需调用 deserialize_embedding）
+    return d
+
+
+def _row_to_json_dict(row: sqlite3.Row) -> dict:
+    """将 sqlite3.Row 转为 JSON 可序列化的 dict（排除 bytes/BLOB 列）"""
+    d = {}
+    for key in row.keys():
+        val = row[key]
+        if isinstance(val, bytes):
+            continue  # 排除 face_embedding / voice_embedding 等 BLOB 列
+        d[key] = val
     return d
 
 

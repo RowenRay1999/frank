@@ -94,6 +94,7 @@ class IdentityFusionEngine:
         self._last_active_update = 0.0  # WR-10: throttle update_member calls
         self._last_face_embedding: np.ndarray | None = None  # 最近人脸嵌入（供自动发现使用）
         self._unidentified_cooldown: dict[str, float] = {}  # embedding_hash → last_seen
+        self._last_auto_discovery: dict | None = None  # 最近一次自动发现结果
 
         # 回调
         self._on_identity_confirmed: Callable | None = None
@@ -233,14 +234,22 @@ class IdentityFusionEngine:
     # ─── 自动发现 ───────────────────────────────────────
 
     def _check_auto_discovery(self, face_emb: np.ndarray) -> dict | None:
-        """检查是否触发自动发现"""
+        """检查是否触发自动发现
+        Returns: dict with person_id, display_name, is_new, appearance_count; or None if skipped
+        """
         # 先搜索未标识人物
         unid_matches = search_unidentified_by_face(face_emb, threshold=0.6)
         if unid_matches:
             person, score = unid_matches[0]
             update_unidentified(person['id'], face_emb=face_emb)
-            logger.info(f'Auto-discovery: matched existing unidentified {person["display_name"]} (appearances: {person["appearance_count"] + 1})')
-            return person
+            new_count = person['appearance_count'] + 1
+            logger.info(f'Auto-discovery: matched existing unidentified {person["display_name"]} (appearances: {new_count})')
+            return {
+                'person_id': person['id'],
+                'display_name': person['display_name'],
+                'is_new': False,
+                'appearance_count': new_count,
+            }
 
         # 检查是否满足自动发现条件：30 秒冷却
         emb_hash = hash(face_emb.tobytes())
@@ -255,7 +264,12 @@ class IdentityFusionEngine:
         name = get_next_visitor_name()
         person_id = add_unidentified(name, face_emb=face_emb)
         logger.info(f'Auto-discovery: new unidentified person {name} ({person_id[:8]}...)')
-        return {'id': person_id, 'display_name': name, 'appearance_count': 1}
+        return {
+            'person_id': person_id,
+            'display_name': name,
+            'is_new': True,
+            'appearance_count': 1,
+        }
 
     # ─── 主循环 ───────────────────────────────────────
 
@@ -321,13 +335,21 @@ class IdentityFusionEngine:
                                 self._state = IdentityState()
 
                         case IdentityStatus.UNKNOWN:
-                            if old_status != IdentityStatus.UNKNOWN:
-                                await self._emit_identity_unknown({})
                             # 自动发现：尝试匹配或创建未标识访客记录
-                            if new_state.face_evidence.is_valid and new_state.face_evidence.member_id is None:
-                                face_emb = self._last_face_embedding
-                                if face_emb is not None:
-                                    self._check_auto_discovery(face_emb)
+                            # 注意：UNKNOWN 状态即意味着人脸未匹配到已注册成员，
+                            # 无需再用 face_evidence.is_valid 做前置检查（该检查在
+                            # 无匹配时 member_id=None → is_valid=False，会错误跳过）
+                            auto_discovered = None
+                            face_emb = self._last_face_embedding
+                            if face_emb is not None:
+                                auto_discovered = self._check_auto_discovery(face_emb)
+                            # 存储最新自动发现结果供 state_to_dict 使用
+                            self._last_auto_discovery = auto_discovered
+                            # 状态转变时或新发现时推送事件
+                            if old_status != IdentityStatus.UNKNOWN or auto_discovered:
+                                await self._emit_identity_unknown({
+                                    'auto_discovered': auto_discovered,
+                                })
 
                 # 检查超时
                 if self._state.status == IdentityStatus.TENTATIVE and self._state.tentative_since:
@@ -358,7 +380,7 @@ class IdentityFusionEngine:
 
     def _state_to_dict(self) -> dict:
         s = self._state
-        return {
+        result = {
             'member_id': s.member_id,
             'display_name': s.display_name,
             'role': s.role,
@@ -368,6 +390,9 @@ class IdentityFusionEngine:
             'face_score': s.face_evidence.score,
             'voice_score': s.voice_evidence.score,
         }
+        if self._last_auto_discovery:
+            result['auto_discovered'] = self._last_auto_discovery
+        return result
 
     # ─── 事件发送 ───────────────────────────────────────
 

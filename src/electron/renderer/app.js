@@ -168,11 +168,11 @@ function openPanel(name) {
   const id = map[name] || name;
   const el = $(id);
   if (el) {
+    PanelManager.open(el);  // 先打开面板，再加载数据（loadPersonaPanel 等依赖 isOpen 检查）
     if (name === 'settings') loadSettings();
     if (name === 'members') refreshMemberPanel();
     if (name === 'identity') loadPersonaPanel();
     if (name === 'tasks') refreshTaskDetailPanel();
-    PanelManager.open(el);
   }
 }
 
@@ -419,6 +419,7 @@ let currentFilter = 'all';
 let _personListRenderPending = false;
 
 function loadPersonaPanel() {
+  if (!PanelManager.isOpen($('identityPanel'))) return;
   window.frankAPI?.sendMessage?.({ type: 'member.list' });
   window.frankAPI?.sendMessage?.({ type: 'member.pending' });
 }
@@ -440,7 +441,7 @@ function renderPersonList(members, pending) {
     ...(pending || []).map(p => ({
       ...p,
       personType: 'unidentified',
-      display_name: p.serial_name || `访客_${String(p.id || '').substring(0, 4).toUpperCase()}`,
+      display_name: p.display_name || `访客_${String(p.id || '').substring(0, 4).toUpperCase()}`,
       role: 'unregistered',
     })),
   ];
@@ -718,9 +719,9 @@ if (window.frankAPI) {
   window.frankAPI.onVoiceStart(() => setChipState(chipMIC, true));
   window.frankAPI.onVoiceEnd(() => setChipState(chipMIC, false));
   window.frankAPI.onWakeWord(data => { frankOrb?.classList.add('thinking'); thinkingRings?.classList.add('visible'); });
-  window.frankAPI.onIdentityConfirmed(data => { updateUserIdentity(data); if(data.display_name) showToast(`${getRoleBadge(data.role)} ${data.display_name} · 已识别`,'success'); });
+  window.frankAPI.onIdentityConfirmed(data => { updateUserIdentity(data); loadPersonaPanel(); if(data.display_name) showToast(`${getRoleBadge(data.role)} ${data.display_name} · 已识别`,'success'); });
   window.frankAPI.onIdentityChanging(() => { if(userRole) userRole.textContent='识别中...'; });
-  window.frankAPI.onIdentityUnknown(() => updateUserIdentity(null));
+  window.frankAPI.onIdentityUnknown(data => { updateUserIdentity(null); if (data?.auto_discovered) loadPersonaPanel(); });
   window.frankAPI.onGestureDetected(data => { showGestureToast(data.gesture_type, data.confidence); if(data.gesture_type==='raise_hand') togglePauseBanner(true); });
   window.frankAPI.onError(data => { if(errorMessage){errorMessage.textContent=`[${data.code}] ${data.message}${data.suggestion?' — '+data.suggestion:''}`;errorToast?.classList.remove('hidden');setTimeout(()=>errorToast?.classList.add('hidden'),5000);} });
   window.frankAPI.onMemberList(data => {
