@@ -103,6 +103,12 @@ def update_config(partial: dict, config_path: str | Path | None = None) -> dict:
     return current
 
 
+def reset_config(config_path: str | Path | None = None) -> dict:
+    """重置配置为默认值并写回 YAML 文件"""
+    defaults = _get_defaults()
+    return update_config(defaults, config_path)
+
+
 def _get_defaults() -> dict[str, Any]:
     return {
         'camera': {
@@ -156,5 +162,59 @@ def _get_defaults() -> dict[str, Any]:
             'minimize_to_tray': True,
             'always_on_top': False,
             'language': 'zh-CN',
+        },
+        'llm': {
+            'provider': 'openai',
+            'model': 'gpt-4o-mini',
+            'base_url': None,
+            'api_key_env': 'FRANK_LLM_API_KEY',
+            'timeout': 15,
+            'max_tokens': 1024,
+            'temperature': 0.7,
+            'max_history_rounds': 10,
+        },
+        'tts': {
+            'voice': 'zh-CN-YunxiNeural',
+            'speed': 1.0,
+            'retry_count': 2,
+            'volume': 0.8,
+        },
+        'wakefree': {
+            'enabled': True,
+            'face_required': True,
+            'face_window_seconds': 2,
+        },
+        'visual_intent': {
+            'enabled': True,
+            'gaze_threshold': 10.0,
+            'gaze_duration': 2.0,
+            'nod_threshold': 0.015,
+            'shake_threshold': 0.015,
+        },
+        'multi_output': {
+            'secondary_audio_device_id': None,
+            'secondary_display_id': None,
+        },
+        'tasks': {
+            'max_retries': 3,
+            'retry_backoff_base': 2,
+            'history_retention_hours': 24,
+        },
+        'pose': {
+            'enabled': True,
+            'min_detection_confidence': 0.5,
+            'min_tracking_confidence': 0.5,
+            'model_complexity': 1,
+        },
+        'gesture': {
+            'enabled': True,
+            'dtw_threshold': 0.65,
+            'debounce_seconds': 3,
+            'window_frames': 30,
+        },
+        'privacy': {
+            'auto_clean': True,
+            'clean_days': 30,
+            'notify_days': 3,
         },
     }

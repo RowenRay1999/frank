@@ -17,6 +17,7 @@ const taskHistory = [];
 const MAX_TASK_HISTORY = 50;
 let cachedMembers = [];
 let cachedPending = [];
+let _pipelineReady = false;  // InsightFace 是否就绪（来自 device.status）
 
 function upsertTask(task) {
   if (task.task_id == null) return;  // 防护: 缺少 task_id 的任务丢弃
@@ -114,6 +115,28 @@ function showToast(msg, type) {
   setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 2000);
 }
 
+function showConfirmDialog(title, message, onConfirm) {
+  const overlay = document.createElement('div');
+  overlay.className = 'confirm-overlay';
+  overlay.innerHTML = `
+    <div class="confirm-dialog">
+      <div class="confirm-dialog-title">${escHtml(title)}</div>
+      <div class="confirm-dialog-msg">${escHtml(message)}</div>
+      <div class="confirm-dialog-actions">
+        <button class="btn-sm" id="_confirmCancel">取消</button>
+        <button class="btn-sm btn-danger-outline" id="_confirmOk" style="border-color:var(--danger,#e74c3c);color:var(--danger,#e74c3c);">确认清除</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('#_confirmCancel').addEventListener('click', close);
+  overlay.querySelector('#_confirmOk').addEventListener('click', () => {
+    close();
+    if (onConfirm) onConfirm();
+  });
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+}
+
 // ═══════════════════════════════════════════════════════════
 // PANEL SYSTEM (PanelManager)
 // ═══════════════════════════════════════════════════════════
@@ -171,7 +194,7 @@ function openPanel(name) {
   const el = $(id);
   if (el) {
     PanelManager.open(el);  // 先打开面板，再加载数据（loadPersonaPanel 等依赖 isOpen 检查）
-    if (name === 'settings') loadSettings();
+    if (name === 'settings') { loadSettings(); loadDeviceLists(); }
     if (name === 'members') refreshMemberPanel();
     if (name === 'identity') loadPersonaPanel();
     if (name === 'tasks') refreshTaskDetailPanel();
@@ -232,6 +255,7 @@ function closeChat() { PanelManager.close(chatOverlay); }
 function sendMessage() {
   const msg = chatInput?.value.trim();
   if (!msg) return;
+  // Append user bubble to chat overlay
   const div = document.createElement('div');
   div.className = 'chat-bubble user'; div.textContent = msg;
   chatMessages?.appendChild(div);
@@ -244,9 +268,11 @@ function sendMessage() {
   if (convoMeta) convoMeta.textContent = '刚刚 · 共 '+chatMessages.querySelectorAll('.chat-bubble').length+' 条消息';
   const b = document.createElement('div');
   b.className = 'convo-bubble user';
-  b.innerHTML = `<div class="convo-bubble-sender">用户</div>${msg}<div class="convo-bubble-time">${ts}</div>`;
+  b.innerHTML = `<div class="convo-bubble-sender">用户</div>${escHtml(msg)}<div class="convo-bubble-time">${ts}</div>`;
   convoBubbles?.appendChild(b);
   if (convoBubbles) convoBubbles.scrollTop = convoBubbles.scrollHeight;
+  // Send to server
+  window.frankAPI?.sendMessage?.({ type: 'chat.text', payload: { text: msg } });
 }
 
 $('chatSendBtn')?.addEventListener('click', sendMessage);
@@ -257,20 +283,38 @@ chatInput?.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMess
 // ═══════════════════════════════════════════════════════════
 let canAutoSave = false;
 
+let _settingsLoadTimer = null;
+
 function loadSettings() {
   $('settingsLoading')?.classList.remove('hidden');
+  $('settingsError')?.classList.add('hidden');
   $('settingsForm')?.classList.add('hidden');
   window.frankAPI?.sendMessage?.({ type: 'settings.get' });
+  // 8s timeout fallback
+  if (_settingsLoadTimer) clearTimeout(_settingsLoadTimer);
+  _settingsLoadTimer = setTimeout(() => {
+    $('settingsLoading')?.classList.add('hidden');
+    const errEl = $('settingsError');
+    if (errEl) { errEl.classList.remove('hidden'); $('settingsErrorText').textContent = '配置加载超时，请确认服务已启动'; }
+    _settingsLoadTimer = null;
+  }, 8000);
 }
 
 function populateSettingsForm(config) {
+  if (_settingsLoadTimer) { clearTimeout(_settingsLoadTimer); _settingsLoadTimer = null; }
   $('settingsLoading')?.classList.add('hidden');
+  $('settingsError')?.classList.add('hidden');
   $('settingsForm')?.classList.remove('hidden');
   const flat = flattenConfig(config || {});
   document.querySelectorAll('#settingsForm [data-key]').forEach(el => {
-    const val = flat[el.dataset.key];
+    let val = flat[el.dataset.key];
     if (val === undefined) return;
-    if (el.type === 'range') { el.value = val; const d = document.querySelector(`[data-for="${el.dataset.key}"]`); if (d) d.textContent = val; }
+    if (el.type === 'range') {
+      // tts.volume: YAML stores 0.0-1.0, UI slider uses 0-100
+      if (el.dataset.key === 'tts.volume') val = Math.round(val * 100);
+      el.value = val;
+      const d = document.querySelector(`[data-for="${el.dataset.key}"]`); if (d) d.textContent = val;
+    }
     else if (el.type === 'checkbox') el.checked = !!val;
     else if (el.tagName === 'SELECT') el.value = String(val);
     else el.value = val;
@@ -305,11 +349,19 @@ $('settingsForm')?.addEventListener('change', (e) => {
   const el = e.target;
   if (!el.dataset.key) return;
   let value;
-  if (el.type === 'range') { value = parseFloat(el.value); const d = document.querySelector(`[data-for="${el.dataset.key}"]`); if (d) d.textContent = value; }
+  if (el.type === 'range') {
+    value = parseFloat(el.value);
+    // tts.volume: UI slider 0-100 → YAML 0.0-1.0
+    if (el.dataset.key === 'tts.volume') value = Math.round(value) / 100;
+    const d = document.querySelector(`[data-for="${el.dataset.key}"]`); if (d) d.textContent = el.value;
+  }
   else if (el.type === 'checkbox') value = el.checked;
   else if (el.type === 'number') value = parseInt(el.value, 10);
   else value = el.value;
   window.frankAPI?.sendMessage?.({ type: 'settings.update', payload: unflattenConfig({ [el.dataset.key]: value }) });
+  // 设备热切换 toast 提示
+  if (el.dataset.key === 'camera.device_id') showToast('📷 摄像头已切换，即时生效', 'success');
+  if (el.dataset.key === 'microphone.device_id') showToast('🎤 麦克风已切换，即时生效', 'success');
 });
 
 $('settingsForm')?.addEventListener('input', (e) => {
@@ -327,19 +379,31 @@ $('settingsContent')?.addEventListener('click', (e) => {
 });
 
 // Device lists
-async function loadDeviceLists() {
-  try {
-    if (window.frankAPI?.getAudioDevices) {
-      const mics = await window.frankAPI.getAudioDevices();
-      const sel = $('selectMic');
-      if (sel) sel.innerHTML = '<option value="">默认设备</option>' + mics.map(m => `<option value="${m.deviceId}">${m.label}</option>`).join('');
-    }
-    if (window.frankAPI?.getVideoDevices) {
-      const cams = await window.frankAPI.getVideoDevices();
-      const sel = $('selectCam');
-      if (sel) sel.innerHTML = '<option value="0">默认设备</option>' + cams.map(c => `<option value="${c.deviceId}">${c.label}</option>`).join('');
-    }
-  } catch (_) {}
+function loadDeviceLists() {
+  // 请求后端枚举系统设备（返回整数索引，兼容 PyAudio/OpenCV）
+  window.frankAPI?.sendMessage?.({ type: 'audio.devices' });
+  window.frankAPI?.sendMessage?.({ type: 'camera.devices' });
+}
+
+// 填充麦克风设备下拉
+function _populateMicDevices(devices) {
+  const sel = $('selectMic');
+  if (!sel) return;
+  const currentVal = sel.value;
+  sel.innerHTML = '<option value="">默认设备</option>' +
+    devices.map(d => `<option value="${d.index}">${d.name}</option>`).join('');
+  // 恢复选中值
+  if (currentVal) sel.value = currentVal;
+}
+
+// 填充摄像头设备下拉
+function _populateCamDevices(devices) {
+  const sel = $('selectCam');
+  if (!sel) return;
+  const currentVal = sel.value;
+  sel.innerHTML = '<option value="0">默认设备</option>' +
+    devices.map(d => `<option value="${d.index}">${d.name}</option>`).join('');
+  if (currentVal) sel.value = currentVal;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -589,6 +653,19 @@ function schedulePersonListRender() {
   });
 }
 
+function _updateIdentityEmptyState() {
+  const el = document.getElementById('identityEmpty');
+  if (!el) return;
+  const hasCamera = chipCAM?.classList.contains('active');
+  if (!hasCamera) {
+    el.textContent = '摄像头未启动\n请在主界面开启摄像头以启用人脸识别';
+  } else if (!_pipelineReady) {
+    el.textContent = '人脸识别引擎加载中…\nInsightFace 模型正在初始化，请稍候';
+  } else {
+    el.textContent = '暂无识别记录\n将摄像头对准人脸，系统将自动发现并记录';
+  }
+}
+
 function renderPersonList(members, pending) {
   allPersons = [
     ...(members || []).map(m => ({ ...m, personType: 'member' })),
@@ -624,7 +701,7 @@ function applyFilter() {
   if (!list) return;
 
   if (!filtered.length) {
-    if (empty) empty.classList.remove('hidden');
+    if (empty) { empty.classList.remove('hidden'); _updateIdentityEmptyState(); }
     list.innerHTML = '';
     return;
   }
@@ -653,11 +730,15 @@ function applyFilter() {
       } catch (_) {}
     }
 
+    const pid = escAttr(isIdentified ? (p.member_id || p.id || '') : (p.id || ''));
+    const resampleAction = isIdentified
+      ? `window.requestVoiceResample('${pid}')`
+      : `showToast('请先标识该人物后再采集声纹','info')`;
     return `
     <div class="identity-item ${isIdentified ? '' : 'unidentified'}">
       <div class="identity-face-thumb">${faceThumb}</div>
-      <div class="identity-voiceprint-mini">
-        ${spectrumBars || '<span style="font-size:8px;color:var(--muted);margin:auto;">待采集</span>'}
+      <div class="identity-voiceprint-mini" title="${isIdentified ? '点击重新采集声纹' : '请先标识该人物'}" onclick="${resampleAction}" style="cursor:pointer;">
+        ${spectrumBars || '<span style="font-size:8px;color:var(--muted);margin:auto;">' + (isIdentified ? '点击采样' : '待采集') + '</span>'}
       </div>
       <div class="identity-info">
         <div class="identity-info-name">${escHtml(p.display_name) || '未知'}</div>
@@ -753,6 +834,37 @@ $('identifyClose')?.addEventListener('click', closeIdentifyDialog);
 $('identifyCancel')?.addEventListener('click', closeIdentifyDialog);
 $('identifyConfirm')?.addEventListener('click', submitIdentify);
 $('identifyName')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') submitIdentify(); });
+
+// ─── Voice capture dialog buttons ──────────────────────
+$('voiceCaptureCancel')?.addEventListener('click', closeVoiceCaptureDialog);
+$('voiceCaptureRetry')?.addEventListener('click', () => {
+  document.getElementById('voiceCaptureWaveform')?.classList.remove('hidden');
+  document.getElementById('voiceCaptureSpectrum')?.classList.add('hidden');
+  document.getElementById('voiceCaptureRetry')?.classList.add('hidden');
+  document.getElementById('voiceCaptureDone')?.classList.add('hidden');
+  document.getElementById('voiceCaptureStatus').textContent = '请在摄像头前正常说话…';
+  const cd = document.getElementById('voiceCaptureCountdown');
+  if (cd) { cd.textContent = '5s'; cd.classList.add('recording'); }
+  _voiceCaptureCountdown = 5;
+  _startWaveformAnimation();
+  _voiceCaptureTimer = setInterval(() => {
+    _voiceCaptureCountdown--;
+    const cel = document.getElementById('voiceCaptureCountdown');
+    if (cel) cel.textContent = _voiceCaptureCountdown > 0 ? _voiceCaptureCountdown + 's' : '等待中…';
+    if (_voiceCaptureCountdown <= 0) {
+      document.getElementById('voiceCaptureStatus').textContent = '等待声纹采集完成…';
+    }
+  }, 1000);
+  window.frankAPI?.sendMessage?.({ type: 'member.capture_voice', payload: { member_id: _voiceCaptureMemberId } });
+});
+$('voiceCaptureDone')?.addEventListener('click', () => {
+  closeVoiceCaptureDialog();
+  loadPersonaPanel();
+  showToast('声纹采样已保存 ✅', 'success');
+});
+$('voiceCaptureOverlay')?.addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeVoiceCaptureDialog();
+});
 
 // ─── Role Info Panel ──────────────────────────────────────
 function loadRoleInfoPanel() {
@@ -924,6 +1036,142 @@ $('btn-minimize')?.addEventListener('click', () => window.frankAPI?.minimizeWind
 $('btn-close')?.addEventListener('click', () => window.frankAPI?.closeWindow?.());
 $('errorClose')?.addEventListener('click', ()=>errorToast?.classList.add('hidden'));
 
+// ─── Voice resample request ─────────────────────────────
+function requestVoiceResample(memberId) {
+  if (!memberId) return;
+  openVoiceCaptureDialog(memberId);
+}
+// Expose to window for inline onclick reliability
+window.requestVoiceResample = requestVoiceResample;
+
+// ─── Voice capture dialog ────────────────────────────
+let _voiceCaptureTimer = null;
+let _voiceCaptureAnimFrame = null;
+let _voiceCaptureMemberId = null;
+let _voiceCaptureCountdown = 0;
+
+function openVoiceCaptureDialog(memberId) {
+  _voiceCaptureMemberId = memberId;
+  _voiceCaptureCountdown = 10;
+  const overlay = document.getElementById('voiceCaptureOverlay');
+  if (!overlay) return;
+  overlay.classList.remove('hidden');
+  document.getElementById('voiceCaptureRetry')?.classList.add('hidden');
+  document.getElementById('voiceCaptureDone')?.classList.add('hidden');
+  document.getElementById('voiceCaptureSpectrum')?.classList.add('hidden');
+  document.getElementById('voiceCaptureWaveform')?.classList.remove('hidden');
+  const countdownEl = document.getElementById('voiceCaptureCountdown');
+  if (countdownEl) { countdownEl.textContent = _voiceCaptureCountdown + 's'; countdownEl.classList.add('recording'); }
+  const statusEl = document.getElementById('voiceCaptureStatus');
+  const guideEl = document.getElementById('voiceCaptureGuide');
+  const scriptEl = document.getElementById('voiceCaptureScript');
+  if (guideEl) guideEl.textContent = '请朗读以下文字：';
+  if (scriptEl) scriptEl.textContent = '你好弗兰克';
+  if (statusEl) statusEl.textContent = '请在 10 秒内朗读以上文字';
+  // Start animated waveform
+  _startWaveformAnimation();
+  // Countdown
+  _voiceCaptureTimer = setInterval(() => {
+    _voiceCaptureCountdown--;
+    if (countdownEl) countdownEl.textContent = _voiceCaptureCountdown > 0 ? _voiceCaptureCountdown + 's' : '…';
+    if (_voiceCaptureCountdown <= 0) {
+      if (statusEl) statusEl.textContent = '等待语音输入…';
+    }
+  }, 1000);
+  // Send capture request
+  window.frankAPI?.sendMessage?.({ type: 'member.capture_voice', payload: { member_id: memberId } });
+}
+
+// Track mic level in voice capture dialog
+let _voiceCaptureMicAnimFrame = null;
+function _updateVoiceCaptureMicLevel(db) {
+  if (!document.getElementById('voiceCaptureOverlay') || document.getElementById('voiceCaptureOverlay').classList.contains('hidden')) return;
+  const bar = document.getElementById('voiceCaptureMicBar');
+  if (!bar) return;
+  // Map -60..0 dB to 0..100%
+  const pct = Math.max(0, Math.min(100, (db + 60) / 60 * 100));
+  bar.style.width = pct + '%';
+  bar.style.background = db > -30 ? 'var(--success)' : db > -50 ? 'var(--accent)' : 'var(--border)';
+}
+
+function closeVoiceCaptureDialog() {
+  const overlay = document.getElementById('voiceCaptureOverlay');
+  if (overlay) overlay.classList.add('hidden');
+  _stopWaveformAnimation();
+  if (_voiceCaptureTimer) { clearInterval(_voiceCaptureTimer); _voiceCaptureTimer = null; }
+  _voiceCaptureMemberId = null;
+  // Reset mic bar
+  const bar = document.getElementById('voiceCaptureMicBar');
+  if (bar) bar.style.width = '0%';
+}
+
+function _handleVoiceCaptureTimeout() {
+  _stopWaveformAnimation();
+  if (_voiceCaptureTimer) { clearInterval(_voiceCaptureTimer); _voiceCaptureTimer = null; }
+  const countdownEl = document.getElementById('voiceCaptureCountdown');
+  if (countdownEl) { countdownEl.textContent = '超时 ⏰'; countdownEl.classList.remove('recording'); }
+  document.getElementById('voiceCaptureWaveform')?.classList.add('hidden');
+  const statusEl = document.getElementById('voiceCaptureStatus');
+  if (statusEl) statusEl.textContent = '未检测到语音，请重试';
+  document.getElementById('voiceCaptureRetry')?.classList.remove('hidden');
+  document.getElementById('voiceCaptureMicBar').style.width = '0%';
+}
+
+function _startWaveformAnimation() {
+  const container = document.getElementById('voiceCaptureWaveform');
+  if (!container) return;
+  // Create 16 bars
+  container.innerHTML = '';
+  for (let i = 0; i < 16; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'voice-capture-waveform-bar recording';
+    container.appendChild(bar);
+  }
+  _voiceCaptureAnimFrame = requestAnimationFrame(_animateWaveform);
+}
+
+function _stopWaveformAnimation() {
+  if (_voiceCaptureAnimFrame) { cancelAnimationFrame(_voiceCaptureAnimFrame); _voiceCaptureAnimFrame = null; }
+  // Remove recording class from countdown
+  const countdownEl = document.getElementById('voiceCaptureCountdown');
+  if (countdownEl) countdownEl.classList.remove('recording');
+}
+
+function _animateWaveform() {
+  const bars = document.querySelectorAll('.voice-capture-waveform-bar');
+  bars.forEach(bar => {
+    const h = 4 + Math.random() * 56;
+    bar.style.height = h + 'px';
+  });
+  _voiceCaptureAnimFrame = requestAnimationFrame(_animateWaveform);
+}
+
+function _showVoiceCaptureResult(spectrum) {
+  _stopWaveformAnimation();
+  if (_voiceCaptureTimer) { clearInterval(_voiceCaptureTimer); _voiceCaptureTimer = null; }
+  const countdownEl = document.getElementById('voiceCaptureCountdown');
+  if (countdownEl) { countdownEl.textContent = '完成 ✅'; countdownEl.classList.remove('recording'); }
+  const statusEl = document.getElementById('voiceCaptureStatus');
+  if (statusEl) statusEl.textContent = '声纹采样完成';
+  // Hide waveform, show spectrum
+  document.getElementById('voiceCaptureWaveform')?.classList.add('hidden');
+  const spectrumContainer = document.getElementById('voiceCaptureSpectrum');
+  if (spectrumContainer && spectrum) {
+    spectrumContainer.innerHTML = '';
+    spectrumContainer.classList.remove('hidden');
+    const bins = spectrum.slice(0, 24);
+    const maxV = Math.max(...bins, 0.01);
+    bins.forEach(v => {
+      const bar = document.createElement('div');
+      bar.className = 'voice-capture-spectrum-bar';
+      bar.style.height = Math.max(2, (v / maxV) * 44) + 'px';
+      spectrumContainer.appendChild(bar);
+    });
+  }
+  document.getElementById('voiceCaptureRetry')?.classList.remove('hidden');
+  document.getElementById('voiceCaptureDone')?.classList.remove('hidden');
+}
+
 // ─── IPC ─────────────────────────────────────────────────
 if (window.frankAPI) {
   window.frankAPI.onStateChanged(data => { const cfg = STATE_CONFIG[data.to]||STATE_CONFIG['Idle']; setOrbState(data.to); setChipState(chipCAM, cfg.chipCAM); setChipState(chipMIC, cfg.chipMIC); });
@@ -949,13 +1197,42 @@ if (window.frankAPI) {
     renderPendingList(cachedPending);
   });
   window.frankAPI.onMemberRegistered(() => { showToast('成员注册成功！','success'); loadMemberManagementPage(); loadPersonaPanel(); });
+  window.frankAPI.onVoiceResampled?.(data => {
+    showToast(`声纹重采样完成 ✅\n${data?.member_id ? '已更新声纹特征' : ''}`, 'success');
+    loadPersonaPanel();
+  });
+  window.frankAPI.onVoiceCaptured?.(data => {
+    if (data?.spectrum && _voiceCaptureMemberId) {
+      _showVoiceCaptureResult(data.spectrum);
+    }
+  });
+  window.frankAPI.onVoiceCaptureTimeout?.(() => {
+    if (_voiceCaptureMemberId) _handleVoiceCaptureTimeout();
+  });
   window.frankAPI.onRoleList?.(data => {
     if (data?.roles) {
       if (PanelManager.isOpen($('roleInfoPanel'))) renderRoleInfoPanel(data.roles);
     }
   });
-  window.frankAPI.onSettingsCurrent?.(data => populateSettingsForm(data));
-  window.frankAPI.onSettingsUpdated?.(data => { populateSettingsForm(data); const s=$('settingsSaveStatus'); if(s){s.classList.remove('hidden');setTimeout(()=>s.classList.add('hidden'),2000);} });
+  window.frankAPI.onSettingsCurrent?.(data => { if (PanelManager.isOpen($('settingsPanel'))) populateSettingsForm(data); });
+  window.frankAPI.onSettingsUpdated?.(data => { if (PanelManager.isOpen($('settingsPanel'))) { populateSettingsForm(data); const s=$('settingsSaveStatus'); if(s){s.classList.remove('hidden');setTimeout(()=>s.classList.add('hidden'),2000);} } });
+  // 设备列表事件：后端返回系统级设备索引（兼容 PyAudio/OpenCV）
+  window.frankAPI.onAudioDevices?.(data => { if (data?.devices) _populateMicDevices(data.devices); });
+  window.frankAPI.onCameraDevices?.(data => { if (data?.devices) _populateCamDevices(data.devices); });
+  // Settings retry button
+  $('btnSettingsRetry')?.addEventListener('click', () => { loadSettings(); });
+  // Reset defaults button: confirm then send settings.reset
+  $('btnResetDefaults')?.addEventListener('click', () => {
+    if (confirm('确定恢复所有配置项为默认值吗？当前配置将被覆盖。')) {
+      window.frankAPI?.sendMessage?.({ type: 'settings.reset' });
+    }
+  });
+  // Clean up timeout when settings panel closes
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.panel-slide-close[data-panel="settingsPanel"]')) {
+      if (_settingsLoadTimer) { clearTimeout(_settingsLoadTimer); _settingsLoadTimer = null; }
+    }
+  });
   window.frankAPI.onTaskList?.(data => { if(data?.tasks) { allTasks = data.tasks; if(PanelManager.isOpen($('taskDetailPanel'))) renderTaskDetailList(allTasks); } });
 
   // ── 任务事件 ──
@@ -1000,10 +1277,13 @@ if (window.frankAPI) {
     if (data.camera) {
       setChipState(chipCAM, data.camera.active);
       if (chipCAM) chipCAM.title = `${data.camera.pipeline || 'Camera'} · ${data.camera.fps}fps · ${data.camera.faces_detected || 0} face`;
+      _pipelineReady = data.camera.pipeline === 'InsightFace';
+      _updateIdentityEmptyState();
     }
     if (data.microphone) {
       setChipState(chipMIC, data.microphone.active);
       if (chipMIC) chipMIC.title = `${data.microphone.pipeline || 'Mic'} · ${data.microphone.level_db?.toFixed(1) || '—'}dB${data.microphone.vad_active ? ' · VAD' : ''}`;
+      _updateVoiceCaptureMicLevel(data.microphone.level_db ?? -60);
     }
     if (data.screen) {
       setChipState(chipSCR, data.screen.active);
@@ -1021,8 +1301,44 @@ if (window.frankAPI) {
     if (convoTopic) convoTopic.textContent = (data.text || '').length > 20 ? (data.text || '').substring(0, 20) + '…' : (data.text || '');
     if (convoMeta) convoMeta.textContent = '刚刚 · 用户';
   });
+  let _assistantStreamBubble = null;
+  let _assistantStreamText = '';
+  window.frankAPI.onLLMToken?.(data => {
+    // Streaming token: create or update assistant bubble in chat overlay
+    if (!PanelManager.isOpen(chatOverlay)) return;
+    _assistantStreamText += data.token || '';
+    if (!_assistantStreamBubble) {
+      _assistantStreamBubble = document.createElement('div');
+      _assistantStreamBubble.className = 'chat-bubble frank';
+      chatMessages?.appendChild(_assistantStreamBubble);
+    }
+    _assistantStreamBubble.textContent = _assistantStreamText;
+    if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+  });
   window.frankAPI.onAssistantMessage?.(data => {
     if (convoMeta) convoMeta.textContent = '刚刚 · Frank';
+    // Finalize streaming bubble in chat overlay
+    const finalText = data.text || _assistantStreamText || '';
+    if (finalText && PanelManager.isOpen(chatOverlay)) {
+      if (!_assistantStreamBubble) {
+        _assistantStreamBubble = document.createElement('div');
+        _assistantStreamBubble.className = 'chat-bubble frank';
+        chatMessages?.appendChild(_assistantStreamBubble);
+      }
+      _assistantStreamBubble.textContent = finalText;
+      if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    // Also update conversation preview
+    if (convoTopic && finalText) convoTopic.textContent = finalText.length > 20 ? finalText.substring(0, 20) + '…' : finalText;
+    const ts = new Date().getHours().toString().padStart(2,'0')+':'+new Date().getMinutes().toString().padStart(2,'0');
+    const b = document.createElement('div');
+    b.className = 'convo-bubble assistant';
+    b.innerHTML = `<div class="convo-bubble-sender">Frank</div>${escHtml(finalText)}<div class="convo-bubble-time">${ts}</div>`;
+    convoBubbles?.appendChild(b);
+    if (convoBubbles) convoBubbles.scrollTop = convoBubbles.scrollHeight;
+    // Reset stream state
+    _assistantStreamBubble = null;
+    _assistantStreamText = '';
   });
   window.frankAPI.onSTTTranscription?.(data => {
     if (convoMeta) convoMeta.textContent = '转写: ' + ((data.text || '').substring(0, 30));
@@ -1063,6 +1379,14 @@ if (window.frankAPI) {
     window.frankAPI?.sendMessage?.({ type: 'member.pending' });
     window.frankAPI?.sendMessage?.({ type: 'member.stats' });
   });
+  window.frankAPI.onMemberCleared?.(data => {
+    showToast(`已清除 ${data?.members_deleted || 0} 名成员、${data?.unidentified_deleted || 0} 名访客`, 'info');
+    closeMemberDetail();
+    window.frankAPI?.sendMessage?.({ type: 'member.list' });
+    window.frankAPI?.sendMessage?.({ type: 'member.pending' });
+    window.frankAPI?.sendMessage?.({ type: 'member.stats' });
+    window.frankAPI?.sendMessage?.({ type: 'role.list' });
+  });
 }
 
 // ─── Role info button ────────────────────────────────────
@@ -1070,6 +1394,19 @@ $('btnRoleInfo')?.addEventListener('click', (e) => {
   e.stopPropagation();
   openPanel('roleInfo');
   loadRoleInfoPanel();
+});
+
+// ─── Clear records button ──────────────────────────────
+$('btnClearRecords')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  showConfirmDialog(
+    '⚠️ 确认清除所有记录？',
+    '此操作将移除所有已标识成员、未标识访客及指令历史记录。该操作不可恢复，确定要继续吗？',
+    () => {
+      window.frankAPI?.sendMessage?.({ type: 'member.clear' });
+      showToast('已清除所有人物记录', 'info');
+    }
+  );
 });
 
 // ─── Identity filter clicks ──────────────────────────────

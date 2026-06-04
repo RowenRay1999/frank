@@ -234,13 +234,13 @@ class LLMManager:
             identity = {'display_name': '用户', 'role': 'guest'}
 
         role = identity.get('role', 'guest')
-        role_map = {'owner': '主人', 'adult': '成人', 'child': '儿童', 'guest': '访客'}
+        role_map = {'owner': '主人', 'admin': '管理员', 'member': '成员', 'guest': '访客'}
         display_name = identity.get('display_name', '用户')
 
         # 推断称呼
-        honorific_map = {'owner': '主人', 'child': '', 'guest': '访客'}
+        honorific_map = {'owner': '主人', 'member': '', 'guest': '访客'}
         honorific = honorific_map.get(role, '')
-        if role == 'adult':
+        if role == 'admin':
             honorific = f'{display_name}先生' if '女士' not in display_name else display_name
         elif not honorific:
             honorific = display_name

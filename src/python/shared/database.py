@@ -677,7 +677,7 @@ def cleanup_unidentified(days_threshold: int = 30, min_appearances: int = 5):
 
 
 def convert_to_member(unidentified_id: str, display_name: str, role: str = 'guest') -> str:
-    """将未标识人物转换为已标识成员"""
+    """将未标识人物转换为已标识成员（转移所有关联数据）"""
     with get_connection() as conn:
         row = conn.execute(
             "SELECT * FROM unidentified WHERE id = ?", (unidentified_id,)
@@ -694,6 +694,28 @@ def convert_to_member(unidentified_id: str, display_name: str, role: str = 'gues
             voice_emb=deserialize_embedding(row['voice_embedding'], 192),
             typical_distance=row['typical_distance_cm'],
             labeled=True,
+        )
+
+        # 转移附加数据：缩略图、声纹频谱、出现统计、时间戳
+        columns = [c[1] for c in conn.execute("PRAGMA table_info(unidentified)").fetchall()]
+        updates = []
+        params = []
+        if 'face_thumbnail' in columns and row['face_thumbnail']:
+            updates.append("face_thumbnail = ?")
+            params.append(row['face_thumbnail'])
+        if 'voiceprint_spectrum' in columns and row['voiceprint_spectrum']:
+            updates.append("voiceprint_spectrum = ?")
+            params.append(row['voiceprint_spectrum'])
+        updates.append("appearance_count = ?")
+        params.append(row['appearance_count'] or 0)
+        updates.append("created_at = ?")
+        params.append(row['first_seen_at'])
+        updates.append("last_active_at = ?")
+        params.append(row['last_seen_at'])
+        params.append(member_id)
+        conn.execute(
+            f"UPDATE members SET {', '.join(updates)} WHERE id = ?",
+            params,
         )
 
         # 删除未标识记录

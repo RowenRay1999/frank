@@ -1,0 +1,5723 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "6f5ad4560ba0e8882518f29067a78a3a731f4965",
+  "generatedAt": "2026-06-01T15:53:36.294Z",
+  "files": {
+    ".claude/commands/fast-cr-fix.md": {
+      "filePath": ".claude/commands/fast-cr-fix.md",
+      "contentHash": "3ee9a74dbf2a5b176bd253ab4fcae089097ddeb232e05f2230e39997b60125e3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 63,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/commands/fast-git-push.md": {
+      "filePath": ".claude/commands/fast-git-push.md",
+      "contentHash": "5a139f99b3a09461795cbc6f834f8c165865f95ae8bb87eca4cd1c9b9a831eef",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 94,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/commands/opsx/apply.md": {
+      "filePath": ".claude/commands/opsx/apply.md",
+      "contentHash": "7d1a89282052990e323a53241d952bb8d3060bb7aa28e005e67d44398e9c0925",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 153,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/commands/opsx/archive.md": {
+      "filePath": ".claude/commands/opsx/archive.md",
+      "contentHash": "2c68a09dc62d3ca1291ed0c048283ed0ebd5b7ccea2c46a279ea60cffb74d353",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 158,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/commands/opsx/explore.md": {
+      "filePath": ".claude/commands/opsx/explore.md",
+      "contentHash": "6acd42bb8483bb89d943b6de9c859cbb97f0023c6b4704e71224fba6132a2609",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 174,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/commands/opsx/propose.md": {
+      "filePath": ".claude/commands/opsx/propose.md",
+      "contentHash": "e73e74dfe7ecaf33f88881083a8180e2feb53452796237b64687390119515d6b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 107,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/settings.json": {
+      "filePath": ".claude/settings.json",
+      "contentHash": "0306323a5c6f94019ebfc745efe997782bd0634e89692c0972a1757cc697ca52",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 10,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/skills/fast-cr-fix/SKILL.md": {
+      "filePath": ".claude/skills/fast-cr-fix/SKILL.md",
+      "contentHash": "a08f774b280df9daf675ce6ea8440e829829cd945de83110040bad3979d99377",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 234,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/skills/fast-git-push/SKILL.md": {
+      "filePath": ".claude/skills/fast-git-push/SKILL.md",
+      "contentHash": "821a13e028bd95640b2e97bf54568b272b6860d2cd6d6de56002096771f0a47a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 156,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/skills/fast-release/assets/template.en.md": {
+      "filePath": ".claude/skills/fast-release/assets/template.en.md",
+      "contentHash": "aaa143f4b2e8b08b2f92a0f29d59de4fe49716186279f0ac4b7788009a3df626",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 80,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/skills/fast-release/assets/template.zh-CN.md": {
+      "filePath": ".claude/skills/fast-release/assets/template.zh-CN.md",
+      "contentHash": "a1458754a056f1ab22b20d472b4b213bb0b22ba9ef217214ee7cf72c2733e416",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 80,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/skills/fast-release/SKILL.md": {
+      "filePath": ".claude/skills/fast-release/SKILL.md",
+      "contentHash": "bfaa27ed7cc8dad546ede4c2927d4a608966e99f2f9d4de611770c0b3eda4ce4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 294,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/skills/openspec-apply-change/SKILL.md": {
+      "filePath": ".claude/skills/openspec-apply-change/SKILL.md",
+      "contentHash": "679533b52454c3ee7a105a542243f232ec9bc0c041814b67cc4c874f0776899a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 157,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/skills/openspec-archive-change/SKILL.md": {
+      "filePath": ".claude/skills/openspec-archive-change/SKILL.md",
+      "contentHash": "e111d71216167eea10cec26abe8f6e15d925efeef2fd9925ffa219f55145acce",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 115,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/skills/openspec-explore/SKILL.md": {
+      "filePath": ".claude/skills/openspec-explore/SKILL.md",
+      "contentHash": "2185e88065c00f69fab63e8e9680a97be51c1e7bcfc260b0631c5418666fcba8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 289,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/skills/openspec-propose/SKILL.md": {
+      "filePath": ".claude/skills/openspec-propose/SKILL.md",
+      "contentHash": "88ad070e30256107d8989c2bf4b0ff9e4ee1c8976dd32829675c88f00618dad6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 111,
+      "hasStructuralAnalysis": true
+    },
+    ".codegraph/config.json": {
+      "filePath": ".codegraph/config.json",
+      "contentHash": "0cfa44996d7e2e441277175ea031d814865f1c051a47628e55404edd97ecbc48",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 143,
+      "hasStructuralAnalysis": true
+    },
+    ".codex/skills/openspec-apply-change/SKILL.md": {
+      "filePath": ".codex/skills/openspec-apply-change/SKILL.md",
+      "contentHash": "679533b52454c3ee7a105a542243f232ec9bc0c041814b67cc4c874f0776899a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 157,
+      "hasStructuralAnalysis": true
+    },
+    ".codex/skills/openspec-archive-change/SKILL.md": {
+      "filePath": ".codex/skills/openspec-archive-change/SKILL.md",
+      "contentHash": "e111d71216167eea10cec26abe8f6e15d925efeef2fd9925ffa219f55145acce",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 115,
+      "hasStructuralAnalysis": true
+    },
+    ".codex/skills/openspec-explore/SKILL.md": {
+      "filePath": ".codex/skills/openspec-explore/SKILL.md",
+      "contentHash": "2185e88065c00f69fab63e8e9680a97be51c1e7bcfc260b0631c5418666fcba8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 289,
+      "hasStructuralAnalysis": true
+    },
+    ".codex/skills/openspec-propose/SKILL.md": {
+      "filePath": ".codex/skills/openspec-propose/SKILL.md",
+      "contentHash": "88ad070e30256107d8989c2bf4b0ff9e4ee1c8976dd32829675c88f00618dad6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 111,
+      "hasStructuralAnalysis": true
+    },
+    ".gitkeep": {
+      "filePath": ".gitkeep",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": false
+    },
+    ".planning/reviews/REVIEW-FIX.md": {
+      "filePath": ".planning/reviews/REVIEW-FIX.md",
+      "contentHash": "f11467318cf488b5be90fb1e76b324ce9ad1928db242f83dc5c662346cf2da29",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 159,
+      "hasStructuralAnalysis": true
+    },
+    ".planning/reviews/REVIEW.md": {
+      "filePath": ".planning/reviews/REVIEW.md",
+      "contentHash": "bc397bc8686c7e5c63c8edf9616a0dd857fd1a3c37509125c85291807f2c8ae8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 485,
+      "hasStructuralAnalysis": true
+    },
+    ".understand-anything/.understandignore": {
+      "filePath": ".understand-anything/.understandignore",
+      "contentHash": "a5045b4430d8065c59856d47773d6d37dbef3b44f24c75a2572eac78c8973e0d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 51,
+      "hasStructuralAnalysis": false
+    },
+    "config/frank.yaml": {
+      "filePath": "config/frank.yaml",
+      "contentHash": "96bac37ff471700917de78c66ff816cb929b86fece5a32f3883262aad2faeb9d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 92,
+      "hasStructuralAnalysis": true
+    },
+    "design/css/app.css": {
+      "filePath": "design/css/app.css",
+      "contentHash": "2a0ec7a3427127a9246b370d603934eca627e7b3c5236ad6203221537b0bc893",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 510,
+      "hasStructuralAnalysis": false
+    },
+    "design/main-panel.html": {
+      "filePath": "design/main-panel.html",
+      "contentHash": "25d4eab775ba1f28df7a051f6cfafc5b02f37e1cb8d51132898037f30057fd07",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1428,
+      "hasStructuralAnalysis": false
+    },
+    "design/vision.html": {
+      "filePath": "design/vision.html",
+      "contentHash": "fab5ca81f93558e1174ca2eebe3ffb07c86165ef36b97074a9081c6e81de4259",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 954,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-05-31-round2-preview-and-live-status-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-05-31-round2-preview-and-live-status-plan.md",
+      "contentHash": "e685a6a0182e7fad9948591fa397257272889e8ca4c869014da38c913ca48006",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1888,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/plans/2026-05-31-round3-identity-panel-redesign-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-05-31-round3-identity-panel-redesign-plan.md",
+      "contentHash": "4a4e9420739993287181dfd96f96d53b6adca5d5be9395387a13b55e1221dc75",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1172,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/plans/2026-06-01-member-management-page-implementation.md": {
+      "filePath": "docs/superpowers/plans/2026-06-01-member-management-page-implementation.md",
+      "contentHash": "612093721d5509e524824906381ee877c6760ea1e95cba5e3151cbf55fbc2021",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1117,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/specs/2026-05-30-frank-01-system-architecture.md": {
+      "filePath": "docs/superpowers/specs/2026-05-30-frank-01-system-architecture.md",
+      "contentHash": "136b8633024dbe8d1050e3a8d287410d0f21c1bc7585fa2998bb8daf45027ec4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 870,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/specs/2026-05-30-frank-02-identity-recognition.md": {
+      "filePath": "docs/superpowers/specs/2026-05-30-frank-02-identity-recognition.md",
+      "contentHash": "3679d5f771088bbc7db838ae330a7aac73b1a2506116108e15bffa9fb548715f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 473,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/specs/2026-05-30-frank-03-interaction-model.md": {
+      "filePath": "docs/superpowers/specs/2026-05-30-frank-03-interaction-model.md",
+      "contentHash": "cbcb5f63345d5a1178d503ced82b4c0c7b75410cb1716ec0ce4b353b71606baa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 689,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/specs/2026-05-30-frank-04-task-plugin-system.md": {
+      "filePath": "docs/superpowers/specs/2026-05-30-frank-04-task-plugin-system.md",
+      "contentHash": "ba79125bf041ea9040824ee0ee0445ede4294ebd27ac230cb19f5d7ae0280402",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 683,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/specs/2026-05-30-frank-05-member-biometrics.md": {
+      "filePath": "docs/superpowers/specs/2026-05-30-frank-05-member-biometrics.md",
+      "contentHash": "9835e39212704b899a2341bb8c446e6e86cbbee3bb222e207a95ec28dd158e67",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 751,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/specs/2026-05-30-frank-06-technology-stack.md": {
+      "filePath": "docs/superpowers/specs/2026-05-30-frank-06-technology-stack.md",
+      "contentHash": "3c3d54d5a4d5e25b2f044b6177f9b525817ac981304a0015c627778cd286ebfb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1175,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/specs/2026-05-31-round2-preview-and-live-status-design.md": {
+      "filePath": "docs/superpowers/specs/2026-05-31-round2-preview-and-live-status-design.md",
+      "contentHash": "26da9374e88607f81bce826324ccaf043f507046dfae62b58f4b05dfa5ec0d9d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 412,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/specs/2026-05-31-round3-identity-panel-redesign.md": {
+      "filePath": "docs/superpowers/specs/2026-05-31-round3-identity-panel-redesign.md",
+      "contentHash": "65385d8ddc0159225e3eee8821e70a78a7499a8311134e584981b0ef362679f7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 346,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/specs/2026-06-01-member-management-page-design.md": {
+      "filePath": "docs/superpowers/specs/2026-06-01-member-management-page-design.md",
+      "contentHash": "a21dc8c2f98cf8dcab623772bb4f62264acc5401940603984f70e72de9ece123",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 289,
+      "hasStructuralAnalysis": true
+    },
+    "docs/version/v0.1.0-b1-2026-05-31/RELEASE.en.md": {
+      "filePath": "docs/version/v0.1.0-b1-2026-05-31/RELEASE.en.md",
+      "contentHash": "36ee62eb039feb855de2358f84784ce85020417934c65d79e44d49665ba8b416",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 152,
+      "hasStructuralAnalysis": true
+    },
+    "docs/version/v0.1.0-b1-2026-05-31/RELEASE.zh-CN.md": {
+      "filePath": "docs/version/v0.1.0-b1-2026-05-31/RELEASE.zh-CN.md",
+      "contentHash": "e6087f9dd13504a7e6079f6974662d761b4c301d6e6308f24adc01a16987bb30",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 152,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-fix-code-review-findings/.openspec.yaml": {
+      "filePath": "openspec/changes/archive/2026-05-30-fix-code-review-findings/.openspec.yaml",
+      "contentHash": "b47270ad32e6370aad9e9d6b31b0b9f6e1646f812853e3d15fe973dc1cdcf35e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-fix-code-review-findings/design.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-fix-code-review-findings/design.md",
+      "contentHash": "20210c2ec5a4654489b423a1aa40f2e95e2e4248d2a7fef78c6a797a9c1adfa1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 108,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-fix-code-review-findings/proposal.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-fix-code-review-findings/proposal.md",
+      "contentHash": "160e1d7afd7fa2000d33adc2e7355724868e1686904c86a29fdbabb3a8fb85d5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-fix-code-review-findings/specs/identity-fusion/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-fix-code-review-findings/specs/identity-fusion/spec.md",
+      "contentHash": "b0f5fe129ee8e0f3470503877cfcbf393de12f6453e578245f7b9bb5d79ae6bf",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-fix-code-review-findings/specs/skill-plugin-system/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-fix-code-review-findings/specs/skill-plugin-system/spec.md",
+      "contentHash": "5fa424a48a503e9921e1317aa36c147c82855b725a29f414dea61075c90c96f1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 23,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-fix-code-review-findings/specs/state-machine/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-fix-code-review-findings/specs/state-machine/spec.md",
+      "contentHash": "6e93f0f31244fba7a993907f325c6222e398f3593a023ec2bcc0a5d4df17f8a1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 30,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-fix-code-review-findings/tasks.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-fix-code-review-findings/tasks.md",
+      "contentHash": "42ea505976c7ed5e4283004e2d8664b0da4f4e693178c8911006541f879f14bf",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 66,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/.openspec.yaml": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/.openspec.yaml",
+      "contentHash": "b47270ad32e6370aad9e9d6b31b0b9f6e1646f812853e3d15fe973dc1cdcf35e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/design.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/design.md",
+      "contentHash": "f7de90df8181b94d5105b6b3c97a5684d3730454c2e9fdef28976496a978ee85",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 101,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/proposal.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/proposal.md",
+      "contentHash": "00b7212efb6a16d4eb49001537d83a5e8e78c85e72e57ffcfcfcdaa72d2829c3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 36,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/specs/audio-pipeline/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/specs/audio-pipeline/spec.md",
+      "contentHash": "af8eaecee3efc49fffe3db815d02bd5f63853dce7e0ddf8896c9b766435ba0f1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 96,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/specs/llm-integration/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/specs/llm-integration/spec.md",
+      "contentHash": "8d25763b08a52009a02d3645b75e24a5b0878e8d718faa65a0eab99c1ee9ab61",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 228,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/specs/speech-to-text/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/specs/speech-to-text/spec.md",
+      "contentHash": "01fd78b174a0e90d182d77cdf10a41516730ec12b6e9d4ea13938613bfae31c8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 236,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/specs/state-machine/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/specs/state-machine/spec.md",
+      "contentHash": "c3e6a296b0238818c9d29ec056bbce9f1c29a0d751282203401668934ecdc95e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 200,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/specs/text-to-speech/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/specs/text-to-speech/spec.md",
+      "contentHash": "211a22f62899c63597907ab70d30ed0a7250f13358b05871147519f7b639ce0b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 144,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/specs/ui-shell/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/specs/ui-shell/spec.md",
+      "contentHash": "cab8d7d49acf472121c066d7b2f8b8c38885aefb33abea336b860b36dc536068",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 272,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/specs/visual-intent/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/specs/visual-intent/spec.md",
+      "contentHash": "a03bea397a360cc33d3cf9204a9710912c85c6f2c3e2d6217eec5aee9947051a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 128,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/specs/wake-free-commands/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/specs/wake-free-commands/spec.md",
+      "contentHash": "2f75dd0cc927f9efed0646c13bcfcd475d97d1170290319223b972f049799252",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 119,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/tasks.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-conversation-intelligence/tasks.md",
+      "contentHash": "2261f26327e32ecdaa851fecf5f1598c1feedb941d772a5e60424bcd3052dc43",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 80,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-core-infrastructure/.openspec.yaml": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-core-infrastructure/.openspec.yaml",
+      "contentHash": "4e010268abe79410e4c79ad37aef5a0cdc9713330bded015a9afa9e5cce23657",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-core-infrastructure/design.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-core-infrastructure/design.md",
+      "contentHash": "fd45c14de65abb755f47223e40004a0c062ca805e65b515e35f58301d23d8cea",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 108,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-core-infrastructure/proposal.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-core-infrastructure/proposal.md",
+      "contentHash": "9f0b18e485575aa27a3237dc1ae9f5bbae56dbbbb3cb1b5723e33e2ce755da68",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 37,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-core-infrastructure/specs/audio-pipeline/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-core-infrastructure/specs/audio-pipeline/spec.md",
+      "contentHash": "540eace27ce64a83343c586159b415d0a77f1e877809422060ce53889ee8d3fc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 160,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-core-infrastructure/specs/camera-pipeline/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-core-infrastructure/specs/camera-pipeline/spec.md",
+      "contentHash": "3f45a3054672cc9cf5285d47f41e05e35486b45b078c5849a4434b6e7224983d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 120,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-core-infrastructure/specs/process-communication/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-core-infrastructure/specs/process-communication/spec.md",
+      "contentHash": "8ce5884d5b0bbb97e2d4c7485e5339c0fe1b49ec801ab9f2555cca4275d45640",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 87,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-core-infrastructure/specs/project-scaffold/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-core-infrastructure/specs/project-scaffold/spec.md",
+      "contentHash": "ddf4c2dd10e0f4241ad1bc903dee77e76091e2f738a697aab5ea446e0299af4a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 261,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-core-infrastructure/specs/state-machine/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-core-infrastructure/specs/state-machine/spec.md",
+      "contentHash": "8e5af9a55e3726d0fe8d80214ee435b8db0a0dd2f3f89f5b5240d5f0ab39e0d2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 176,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-core-infrastructure/specs/ui-shell/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-core-infrastructure/specs/ui-shell/spec.md",
+      "contentHash": "a41ae55a2729fe9d85e14979f21c475062190b1718b23271f9fa1c319b38bd14",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 147,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-core-infrastructure/tasks.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-core-infrastructure/tasks.md",
+      "contentHash": "edc36dac478c30c0e3affd3584422ae62b4cb264c86c30d8c381a0d324b19aaf",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 70,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-identity-fusion/.openspec.yaml": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-identity-fusion/.openspec.yaml",
+      "contentHash": "4e010268abe79410e4c79ad37aef5a0cdc9713330bded015a9afa9e5cce23657",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-identity-fusion/design.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-identity-fusion/design.md",
+      "contentHash": "a138eff8e63b8b965c0621022c097dda37f30a27fb9f5fd9506c20a504631bc7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 113,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-identity-fusion/proposal.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-identity-fusion/proposal.md",
+      "contentHash": "d4d124fe995ab9d1819ea156431fbaa2928c596b6ace0883376c2e42d59515d9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 37,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-identity-fusion/specs/audio-pipeline/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-identity-fusion/specs/audio-pipeline/spec.md",
+      "contentHash": "aefedf9dbeeacd2f9ffbec8b1d5044d141c563690e598273a451a6da5e13db47",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 122,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-identity-fusion/specs/biometric-storage/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-identity-fusion/specs/biometric-storage/spec.md",
+      "contentHash": "3a9366aca8aebac3f17c9b55b49f9331a3ed01d80ec6cb74a3da04d323ed624f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 389,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-identity-fusion/specs/camera-pipeline/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-identity-fusion/specs/camera-pipeline/spec.md",
+      "contentHash": "76f9bb46a316fa72e9d7c7354c92eeb1d7781754050a9cae84fb7ed9340d8569",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 93,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-identity-fusion/specs/identity-fusion/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-identity-fusion/specs/identity-fusion/spec.md",
+      "contentHash": "a19601ce65e13569e143e510c464053dbf62f9ae919b3213bbb103fb0210b2da",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 130,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-identity-fusion/specs/member-management/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-identity-fusion/specs/member-management/spec.md",
+      "contentHash": "1a4016d27caa62d146e4ba9bf9c745381590f92d226ab1326b49566b7b475f01",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 332,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-identity-fusion/specs/role-permission/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-identity-fusion/specs/role-permission/spec.md",
+      "contentHash": "c7b3faf3c0dcdba490666ba7a100b01ec371f772be678293598a33eedd0248c6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 293,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-identity-fusion/specs/state-machine/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-identity-fusion/specs/state-machine/spec.md",
+      "contentHash": "e2909455eb0e20036353ff928a121cfa345ccab1de1f748f8253efed37f46bdc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 306,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-identity-fusion/specs/ui-shell/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-identity-fusion/specs/ui-shell/spec.md",
+      "contentHash": "334e3bf5486673da2f33b7812d7f5a29c42f237e7c6680949aed80e5c8cd5557",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 196,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-identity-fusion/tasks.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-identity-fusion/tasks.md",
+      "contentHash": "68817e0e4575e502c4dd774b3a3e9e49d29ca13123050c9de0998d0eb259db6f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 80,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-multi-task-skills/.openspec.yaml": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-multi-task-skills/.openspec.yaml",
+      "contentHash": "b47270ad32e6370aad9e9d6b31b0b9f6e1646f812853e3d15fe973dc1cdcf35e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-multi-task-skills/design.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-multi-task-skills/design.md",
+      "contentHash": "07898eeda9c988b3add204ebd6b9484b32ba469a73dae0126942745288697342",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 55,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-multi-task-skills/proposal.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-multi-task-skills/proposal.md",
+      "contentHash": "5d118737543a1da656525756e5b145863226f2814eaa3dd096cdcfc279e3460c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 32,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-multi-task-skills/specs/camera-pipeline/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-multi-task-skills/specs/camera-pipeline/spec.md",
+      "contentHash": "bdfcf7c44ea80856ab730ea85d562b80c1114e18ac82e5c55dc483735c7cfab6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 95,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-multi-task-skills/specs/multi-output-routing/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-multi-task-skills/specs/multi-output-routing/spec.md",
+      "contentHash": "f5ded95488a8e31b9b5178b36a4dc86a52d1ef0dea5473b596430f81b629c556",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 83,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-multi-task-skills/specs/multi-person-mode/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-multi-task-skills/specs/multi-person-mode/spec.md",
+      "contentHash": "d4280155c34d6a582ec4a64603214e187f7705b5b00cdb39121afecf1283f339",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 71,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-multi-task-skills/specs/skill-plugin-system/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-multi-task-skills/specs/skill-plugin-system/spec.md",
+      "contentHash": "9c0cada9732b80005cbbfe017f6544db8cb3d4c5af16283bc8b9f18bd0a18478",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-multi-task-skills/specs/state-machine/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-multi-task-skills/specs/state-machine/spec.md",
+      "contentHash": "7c6f4e1384768b1d3add599924e811d8a39f4262ac018177b245ad8e75397795",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 339,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-multi-task-skills/specs/task-management/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-multi-task-skills/specs/task-management/spec.md",
+      "contentHash": "103a203b65495cb253aeef9cb872dd054a02c57ddea3d47c8ef8eb0d8f4a16c1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 115,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-multi-task-skills/specs/ui-shell/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-multi-task-skills/specs/ui-shell/spec.md",
+      "contentHash": "98cc33d20879a6c7cf9952b4f160f6fab197744cbd438f64f5cfda9b5d85b214",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 321,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-multi-task-skills/tasks.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-multi-task-skills/tasks.md",
+      "contentHash": "fb7c5b5f05d5b23be24fa4a529fdbb0bbb06c098a89ec1557e5dbe7a6c5a028c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 67,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-pose-gesture/.openspec.yaml": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-pose-gesture/.openspec.yaml",
+      "contentHash": "b47270ad32e6370aad9e9d6b31b0b9f6e1646f812853e3d15fe973dc1cdcf35e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-pose-gesture/design.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-pose-gesture/design.md",
+      "contentHash": "b321eb12aac9586323bd2f9b229d7f2df8e525c05470df6aed25fc5cd92589ab",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 105,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-pose-gesture/proposal.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-pose-gesture/proposal.md",
+      "contentHash": "8a72456d1f212be7d1792a3132024830116e2fe588a017d5febee2cce7f801e1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-pose-gesture/specs/camera-pipeline/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-pose-gesture/specs/camera-pipeline/spec.md",
+      "contentHash": "f479e6debc503513d117eca44160d7d80d4db270821783330f35ac8aba384143",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 31,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-pose-gesture/specs/gesture-actions/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-pose-gesture/specs/gesture-actions/spec.md",
+      "contentHash": "f1729a7ba6d8a91f4babe5e489141d286f58db0cfdc6aa54e1cf25e18f51d08e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 91,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-pose-gesture/specs/gesture-recognition/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-pose-gesture/specs/gesture-recognition/spec.md",
+      "contentHash": "3fe2cd0525d96f8bf53309dc3f75f56058dec9ac9e7bba8b7b18cb81e53d716d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 93,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-pose-gesture/specs/pose-detection/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-pose-gesture/specs/pose-detection/spec.md",
+      "contentHash": "5d3409a5341cd240d1ecf62e7f1868bf8014d0e812ddebc579f8501c2ae7d1c8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 71,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-pose-gesture/specs/state-machine/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-pose-gesture/specs/state-machine/spec.md",
+      "contentHash": "77f69a7dfd7696c0ee0fefe6740bec2bd05e814124301096cf97df17d36676f2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 41,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-pose-gesture/specs/ui-shell/spec.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-pose-gesture/specs/ui-shell/spec.md",
+      "contentHash": "42dea11044c48cdc68b992a611ad0f79ecf7796461001756a8afec8ddd153913",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-05-30-frank-pose-gesture/tasks.md": {
+      "filePath": "openspec/changes/archive/2026-05-30-frank-pose-gesture/tasks.md",
+      "contentHash": "d1ec26c175fd83d4fff24255fd5f69458f93334c7065d63b88eaba4e454b9ea3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 79,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-06-01-fix-identity-face-thumb/.openspec.yaml": {
+      "filePath": "openspec/changes/archive/2026-06-01-fix-identity-face-thumb/.openspec.yaml",
+      "contentHash": "65c5f9e09055149db7df25a7347fa25fc910ed4e5cabadd268f7bb81db53b5eb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-06-01-fix-identity-face-thumb/design.md": {
+      "filePath": "openspec/changes/archive/2026-06-01-fix-identity-face-thumb/design.md",
+      "contentHash": "4792d066c2889e466ebab86af76b98ef0bbc4aef93c18abab2961c6ba23d7221",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 82,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-06-01-fix-identity-face-thumb/proposal.md": {
+      "filePath": "openspec/changes/archive/2026-06-01-fix-identity-face-thumb/proposal.md",
+      "contentHash": "df9408b2130258b4b871b546daece116c97f4dbbead76bb7c90fb333eef38a7a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-06-01-fix-identity-face-thumb/specs/face-thumbnail-capture/spec.md": {
+      "filePath": "openspec/changes/archive/2026-06-01-fix-identity-face-thumb/specs/face-thumbnail-capture/spec.md",
+      "contentHash": "9017176c008cfd43a41c71b9ce538675327ba02f81c0882173029e33bf12a870",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 35,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/archive/2026-06-01-fix-identity-face-thumb/tasks.md": {
+      "filePath": "openspec/changes/archive/2026-06-01-fix-identity-face-thumb/tasks.md",
+      "contentHash": "03ca34c16f14f8c6454c22097fe1c11f12c3c22ff042f1946181de10548d18a2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/connect-session-to-persistence/.openspec.yaml": {
+      "filePath": "openspec/changes/connect-session-to-persistence/.openspec.yaml",
+      "contentHash": "658f3e5d745f6ecfb0f5ff0454622795d34ac9ddb90bb385519cc7daeb8f44a9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/connect-session-to-persistence/design.md": {
+      "filePath": "openspec/changes/connect-session-to-persistence/design.md",
+      "contentHash": "0d192d1decc2a9b1d6bee437b35b1e8ad2c1514ce817c6f7a97dbb760df25435",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 118,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/connect-session-to-persistence/proposal.md": {
+      "filePath": "openspec/changes/connect-session-to-persistence/proposal.md",
+      "contentHash": "3de50178f5708826b11587639855dc02a350f0611f87ba54dcde0d262d4a7cb0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 31,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/connect-session-to-persistence/specs/session-persistence/spec.md": {
+      "filePath": "openspec/changes/connect-session-to-persistence/specs/session-persistence/spec.md",
+      "contentHash": "b34ed29199f520285da0127f306a4f0de1a1260734d6a06a6aa11d5edfa8397c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 158,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/debug-identity-pipeline/.openspec.yaml": {
+      "filePath": "openspec/changes/debug-identity-pipeline/.openspec.yaml",
+      "contentHash": "658f3e5d745f6ecfb0f5ff0454622795d34ac9ddb90bb385519cc7daeb8f44a9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/debug-identity-pipeline/design.md": {
+      "filePath": "openspec/changes/debug-identity-pipeline/design.md",
+      "contentHash": "44064ade615c75f9b58cf808aeeaa713de13dc8574802c9a31a9a0f4dae79525",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 97,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/debug-identity-pipeline/proposal.md": {
+      "filePath": "openspec/changes/debug-identity-pipeline/proposal.md",
+      "contentHash": "fd42aa86ffc506203bbe81b07b6c5a4c8e5fac0bd6e10c25c43468a8dc17bd88",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 34,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/debug-identity-pipeline/specs/identity-fusion/spec.md": {
+      "filePath": "openspec/changes/debug-identity-pipeline/specs/identity-fusion/spec.md",
+      "contentHash": "3e630e37a108af72ff428a2440f23ab60cd0ee22a6c3d4fbf842165556528c09",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 49,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/debug-identity-pipeline/specs/identity-live-sync/spec.md": {
+      "filePath": "openspec/changes/debug-identity-pipeline/specs/identity-live-sync/spec.md",
+      "contentHash": "db8c56ef77dd7effb47c70ace5535da74c748305a78f875b9daddaab36417b2b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 46,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/debug-identity-pipeline/specs/member-management/spec.md": {
+      "filePath": "openspec/changes/debug-identity-pipeline/specs/member-management/spec.md",
+      "contentHash": "10a17e6d5025742774b99623f8613ee6b263a58fe383361110bfdf5a41e35d33",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 52,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/debug-identity-pipeline/tasks.md": {
+      "filePath": "openspec/changes/debug-identity-pipeline/tasks.md",
+      "contentHash": "de54ab438fb0498055dbbc1578fca16ebb587627223bd6b62be2ff4f62902923",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 34,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/fix-app-exit-and-close/.openspec.yaml": {
+      "filePath": "openspec/changes/fix-app-exit-and-close/.openspec.yaml",
+      "contentHash": "b47270ad32e6370aad9e9d6b31b0b9f6e1646f812853e3d15fe973dc1cdcf35e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/fix-app-exit-and-close/design.md": {
+      "filePath": "openspec/changes/fix-app-exit-and-close/design.md",
+      "contentHash": "79055472fd1051139fc25ad96db3a7cba4e23b45a3780135b352183deaa2823e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 70,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/fix-app-exit-and-close/proposal.md": {
+      "filePath": "openspec/changes/fix-app-exit-and-close/proposal.md",
+      "contentHash": "91887f0862a22732f175542043f20b238e48856ae4868106c2bd7a1f0f6f4b1a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/fix-app-exit-and-close/specs/app-window-controls/spec.md": {
+      "filePath": "openspec/changes/fix-app-exit-and-close/specs/app-window-controls/spec.md",
+      "contentHash": "edbcc6256b0d55ad9dbca19ddcb0c0b49d755bf7ced7b25c94097ef11e172e2a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 44,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/fix-app-exit-and-close/tasks.md": {
+      "filePath": "openspec/changes/fix-app-exit-and-close/tasks.md",
+      "contentHash": "d0be5d8aa5e4beb1b10f814df8c987ac76d1e2aaeed373406f6970af32850eb1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/fix-ui-pages-no-implementation/.openspec.yaml": {
+      "filePath": "openspec/changes/fix-ui-pages-no-implementation/.openspec.yaml",
+      "contentHash": "b47270ad32e6370aad9e9d6b31b0b9f6e1646f812853e3d15fe973dc1cdcf35e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/fix-ui-pages-no-implementation/design.md": {
+      "filePath": "openspec/changes/fix-ui-pages-no-implementation/design.md",
+      "contentHash": "d42d67a707d3250e0f5c8ca88dae8c65a10f6d80711004358887e803071c1ef5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 71,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/fix-ui-pages-no-implementation/proposal.md": {
+      "filePath": "openspec/changes/fix-ui-pages-no-implementation/proposal.md",
+      "contentHash": "70ff9a8120f0f36d473fb1c508788c6f36f418422d7a1b1158f61627a685253d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/fix-ui-pages-no-implementation/specs/member-management/spec.md": {
+      "filePath": "openspec/changes/fix-ui-pages-no-implementation/specs/member-management/spec.md",
+      "contentHash": "96716d9828043933cf1828df878654e9a6e3abafaa56e2facc6abd2fbd427cb6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 72,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/fix-ui-pages-no-implementation/specs/persona-panel/spec.md": {
+      "filePath": "openspec/changes/fix-ui-pages-no-implementation/specs/persona-panel/spec.md",
+      "contentHash": "e620d9ed21e638c89c8a4e4a64b321641baa79e1bff668c5256b0b042c163136",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 109,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/fix-ui-pages-no-implementation/specs/settings-panel/spec.md": {
+      "filePath": "openspec/changes/fix-ui-pages-no-implementation/specs/settings-panel/spec.md",
+      "contentHash": "17219826586e43363560fee0eef4e9ab10a8b2727384597f30f793e01f7c689e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 135,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/fix-ui-pages-no-implementation/specs/ui-shell/spec.md": {
+      "filePath": "openspec/changes/fix-ui-pages-no-implementation/specs/ui-shell/spec.md",
+      "contentHash": "7f96c584fc96a8549c3f10e0cb76f92d50ce0c64109addc3650ede3111a017f6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 59,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/fix-ui-pages-no-implementation/tasks.md": {
+      "filePath": "openspec/changes/fix-ui-pages-no-implementation/tasks.md",
+      "contentHash": "b1706c4b4fba969d3a2f4c4f0fa0052cf407171bd6378c6f21142b069f3f2623",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 63,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/integrate-legacy-panels-v2/.openspec.yaml": {
+      "filePath": "openspec/changes/integrate-legacy-panels-v2/.openspec.yaml",
+      "contentHash": "b47270ad32e6370aad9e9d6b31b0b9f6e1646f812853e3d15fe973dc1cdcf35e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/integrate-legacy-panels-v2/design.md": {
+      "filePath": "openspec/changes/integrate-legacy-panels-v2/design.md",
+      "contentHash": "063a58ad8dee9a8a5362193fa5f82a79cdd6bc88b445e01d8be28893a3572c35",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 158,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/integrate-legacy-panels-v2/proposal.md": {
+      "filePath": "openspec/changes/integrate-legacy-panels-v2/proposal.md",
+      "contentHash": "377cff46a0287d2fa9046750cb07997590e384d1da12d3eeff3fe0f0121388a0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 44,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/integrate-legacy-panels-v2/specs/bottom-nav-bar/spec.md": {
+      "filePath": "openspec/changes/integrate-legacy-panels-v2/specs/bottom-nav-bar/spec.md",
+      "contentHash": "b18c2b572f1ca88d7ad248fe9e782ebb01e211b3578cc4909964f3c37f2dcd66",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 34,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/integrate-legacy-panels-v2/specs/chat-overlay/spec.md": {
+      "filePath": "openspec/changes/integrate-legacy-panels-v2/specs/chat-overlay/spec.md",
+      "contentHash": "dec09f9c5723e6fcd41cf3e706e327f7231e62281a9f44ec445d9971e653ff7b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 32,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/integrate-legacy-panels-v2/specs/main-panel-layout/spec.md": {
+      "filePath": "openspec/changes/integrate-legacy-panels-v2/specs/main-panel-layout/spec.md",
+      "contentHash": "ebc9f54c0e4a58d122ffe9a8123827f8f155ca62330b739465652d0af8f8aeb4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 41,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/integrate-legacy-panels-v2/specs/slide-over-panel-system/spec.md": {
+      "filePath": "openspec/changes/integrate-legacy-panels-v2/specs/slide-over-panel-system/spec.md",
+      "contentHash": "191da1df6a95e1d7712b0644e393c3b4a7d9b7c9745038ec254756402e179396",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 87,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/integrate-legacy-panels-v2/specs/status-notification-bar/spec.md": {
+      "filePath": "openspec/changes/integrate-legacy-panels-v2/specs/status-notification-bar/spec.md",
+      "contentHash": "0b787ebec8bad006ed5edc98270c460b8fd1569583150d49830387318e752d01",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 13,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/integrate-legacy-panels-v2/specs/task-list-panel/spec.md": {
+      "filePath": "openspec/changes/integrate-legacy-panels-v2/specs/task-list-panel/spec.md",
+      "contentHash": "0ae738a75259e0fbcea6e083d56144017901a7b034f9b01906b4a86ea7f92214",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/integrate-legacy-panels-v2/specs/ui-shell/spec.md": {
+      "filePath": "openspec/changes/integrate-legacy-panels-v2/specs/ui-shell/spec.md",
+      "contentHash": "f5c9e0b1698c230408301cc0528abbdcdb71e9e3e0b8468d0e1bdef0013e7572",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 61,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/integrate-legacy-panels-v2/specs/window-adaptive-layout/spec.md": {
+      "filePath": "openspec/changes/integrate-legacy-panels-v2/specs/window-adaptive-layout/spec.md",
+      "contentHash": "113b4588a45277f24008dd5acb55c44523a25458f9e81cd26c096a55b7eb4c19",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 55,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/integrate-legacy-panels-v2/tasks.md": {
+      "filePath": "openspec/changes/integrate-legacy-panels-v2/tasks.md",
+      "contentHash": "48bf5d3c075aaea77fae19dee461aa9321efd9891206019771e7a78966f5a8be",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 76,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/redesign-main-panel-ui/.openspec.yaml": {
+      "filePath": "openspec/changes/redesign-main-panel-ui/.openspec.yaml",
+      "contentHash": "b47270ad32e6370aad9e9d6b31b0b9f6e1646f812853e3d15fe973dc1cdcf35e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/redesign-main-panel-ui/design.md": {
+      "filePath": "openspec/changes/redesign-main-panel-ui/design.md",
+      "contentHash": "9a71af5b26cadf475f6ffe90f846416baba7478e0fdc6fa022d8e384a7f5f036",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 174,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/redesign-main-panel-ui/proposal.md": {
+      "filePath": "openspec/changes/redesign-main-panel-ui/proposal.md",
+      "contentHash": "c8c57f0fe61ab3396ada70752d386d5fa825e4c3874a51fbebed896b2fbd3e22",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 46,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/redesign-main-panel-ui/specs/bottom-nav-bar/spec.md": {
+      "filePath": "openspec/changes/redesign-main-panel-ui/specs/bottom-nav-bar/spec.md",
+      "contentHash": "5be1cb3dc04841b4ef7648e487dd7482f5c08a4bb45982b0d36bb22b993526a2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 66,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/redesign-main-panel-ui/specs/chat-overlay/spec.md": {
+      "filePath": "openspec/changes/redesign-main-panel-ui/specs/chat-overlay/spec.md",
+      "contentHash": "a1bf03e683c9b9a7dcac1755d32d937e8863cd5b376e21a2c7dbe2efa2072b5c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 113,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/redesign-main-panel-ui/specs/design-token-system/spec.md": {
+      "filePath": "openspec/changes/redesign-main-panel-ui/specs/design-token-system/spec.md",
+      "contentHash": "396450425921cbf6308b0538a9568ed434e96c54ea39412cd0e68565f5cb2aa4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 128,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/redesign-main-panel-ui/specs/inline-conversation-board/spec.md": {
+      "filePath": "openspec/changes/redesign-main-panel-ui/specs/inline-conversation-board/spec.md",
+      "contentHash": "e1ccfa30ebaa1c0447d8a9d2be57d949259bf8c4e06f21aec4774f497db5b74d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 58,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/redesign-main-panel-ui/specs/main-panel-layout/spec.md": {
+      "filePath": "openspec/changes/redesign-main-panel-ui/specs/main-panel-layout/spec.md",
+      "contentHash": "4e092d0e9cba0ec0f9d55511595b0a9c280617017ed8a250bfa3bcf6a8253b77",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 53,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/redesign-main-panel-ui/specs/orb-thinking-animation/spec.md": {
+      "filePath": "openspec/changes/redesign-main-panel-ui/specs/orb-thinking-animation/spec.md",
+      "contentHash": "bb1c623b8734d69a2caac5bfbc35ee715d0687a9b240c64d36c21f32340a9a9c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 109,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/redesign-main-panel-ui/specs/status-notification-bar/spec.md": {
+      "filePath": "openspec/changes/redesign-main-panel-ui/specs/status-notification-bar/spec.md",
+      "contentHash": "4eb8ec4e0c9658e156ef88ac5ce8e80de64dcd48958e4c0939110dfccf08e4ce",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 107,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/redesign-main-panel-ui/specs/task-list-panel/spec.md": {
+      "filePath": "openspec/changes/redesign-main-panel-ui/specs/task-list-panel/spec.md",
+      "contentHash": "d8fc5170863100abacd78b955209d75744f023d8091a67e300cef3464f8dbb61",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 89,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/redesign-main-panel-ui/specs/ui-shell/spec.md": {
+      "filePath": "openspec/changes/redesign-main-panel-ui/specs/ui-shell/spec.md",
+      "contentHash": "cefb5f19c37cebf0fe2a55df487ee53463068e95f05c6db197d830812c312d99",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 132,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/changes/redesign-main-panel-ui/tasks.md": {
+      "filePath": "openspec/changes/redesign-main-panel-ui/tasks.md",
+      "contentHash": "ba23be3c6ce2deb7d33f691029519c57b0525c4cbbbb6ff17abdbff482f1a89c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 83,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/config.yaml": {
+      "filePath": "openspec/config.yaml",
+      "contentHash": "7f64d2448e1c83ffa6f2f3398b742fb5f2d4d3ea47b2c540a9076484977026b4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/audio-pipeline/spec.md": {
+      "filePath": "openspec/specs/audio-pipeline/spec.md",
+      "contentHash": "760b5f1b4af680a7c91028dc2063d1fab1258531a73ff86fdd78c9a716107def",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 342,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/biometric-storage/spec.md": {
+      "filePath": "openspec/specs/biometric-storage/spec.md",
+      "contentHash": "3a9366aca8aebac3f17c9b55b49f9331a3ed01d80ec6cb74a3da04d323ed624f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 389,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/camera-pipeline/spec.md": {
+      "filePath": "openspec/specs/camera-pipeline/spec.md",
+      "contentHash": "07dc9b790e39208d9d9eb723becd6563464d307dc10280dd8442d0bdd87e43f8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 281,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/face-thumbnail-capture/spec.md": {
+      "filePath": "openspec/specs/face-thumbnail-capture/spec.md",
+      "contentHash": "9017176c008cfd43a41c71b9ce538675327ba02f81c0882173029e33bf12a870",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 35,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/gesture-actions/spec.md": {
+      "filePath": "openspec/specs/gesture-actions/spec.md",
+      "contentHash": "f1729a7ba6d8a91f4babe5e489141d286f58db0cfdc6aa54e1cf25e18f51d08e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 91,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/gesture-recognition/spec.md": {
+      "filePath": "openspec/specs/gesture-recognition/spec.md",
+      "contentHash": "3fe2cd0525d96f8bf53309dc3f75f56058dec9ac9e7bba8b7b18cb81e53d716d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 93,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/identity-fusion/spec.md": {
+      "filePath": "openspec/specs/identity-fusion/spec.md",
+      "contentHash": "703e63efc37faa52f0eaf17b89effd552e5a6093a721c43c3a5acf15f357563b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 158,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/llm-integration/spec.md": {
+      "filePath": "openspec/specs/llm-integration/spec.md",
+      "contentHash": "8d25763b08a52009a02d3645b75e24a5b0878e8d718faa65a0eab99c1ee9ab61",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 228,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/member-management/spec.md": {
+      "filePath": "openspec/specs/member-management/spec.md",
+      "contentHash": "1a4016d27caa62d146e4ba9bf9c745381590f92d226ab1326b49566b7b475f01",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 332,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/multi-output-routing/spec.md": {
+      "filePath": "openspec/specs/multi-output-routing/spec.md",
+      "contentHash": "f5ded95488a8e31b9b5178b36a4dc86a52d1ef0dea5473b596430f81b629c556",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 83,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/multi-person-mode/spec.md": {
+      "filePath": "openspec/specs/multi-person-mode/spec.md",
+      "contentHash": "d4280155c34d6a582ec4a64603214e187f7705b5b00cdb39121afecf1283f339",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 71,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/pose-detection/spec.md": {
+      "filePath": "openspec/specs/pose-detection/spec.md",
+      "contentHash": "5d3409a5341cd240d1ecf62e7f1868bf8014d0e812ddebc579f8501c2ae7d1c8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 71,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/process-communication/spec.md": {
+      "filePath": "openspec/specs/process-communication/spec.md",
+      "contentHash": "8ce5884d5b0bbb97e2d4c7485e5339c0fe1b49ec801ab9f2555cca4275d45640",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 87,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/project-scaffold/spec.md": {
+      "filePath": "openspec/specs/project-scaffold/spec.md",
+      "contentHash": "ddf4c2dd10e0f4241ad1bc903dee77e76091e2f738a697aab5ea446e0299af4a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 261,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/role-permission/spec.md": {
+      "filePath": "openspec/specs/role-permission/spec.md",
+      "contentHash": "c7b3faf3c0dcdba490666ba7a100b01ec371f772be678293598a33eedd0248c6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 293,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/skill-plugin-system/spec.md": {
+      "filePath": "openspec/specs/skill-plugin-system/spec.md",
+      "contentHash": "4583186936ee3d3c51d8c86474618711a7f8a455bb2a07a8923302e595ed3165",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 73,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/speech-to-text/spec.md": {
+      "filePath": "openspec/specs/speech-to-text/spec.md",
+      "contentHash": "01fd78b174a0e90d182d77cdf10a41516730ec12b6e9d4ea13938613bfae31c8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 236,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/state-machine/spec.md": {
+      "filePath": "openspec/specs/state-machine/spec.md",
+      "contentHash": "8dfdddb2f8bc491c8d54b481a603e3cea96808a63014b5764f131d0c33139f18",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 765,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/task-management/spec.md": {
+      "filePath": "openspec/specs/task-management/spec.md",
+      "contentHash": "103a203b65495cb253aeef9cb872dd054a02c57ddea3d47c8ef8eb0d8f4a16c1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 115,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/text-to-speech/spec.md": {
+      "filePath": "openspec/specs/text-to-speech/spec.md",
+      "contentHash": "211a22f62899c63597907ab70d30ed0a7250f13358b05871147519f7b639ce0b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 144,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/ui-shell/spec.md": {
+      "filePath": "openspec/specs/ui-shell/spec.md",
+      "contentHash": "9e0002643b0fc0a2e3388a687d4490e89f0c2f3c26fa0acecd58a1ab34220b89",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 723,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/visual-intent/spec.md": {
+      "filePath": "openspec/specs/visual-intent/spec.md",
+      "contentHash": "a03bea397a360cc33d3cf9204a9710912c85c6f2c3e2d6217eec5aee9947051a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 128,
+      "hasStructuralAnalysis": true
+    },
+    "openspec/specs/wake-free-commands/spec.md": {
+      "filePath": "openspec/specs/wake-free-commands/spec.md",
+      "contentHash": "2f75dd0cc927f9efed0646c13bcfcd475d97d1170290319223b972f049799252",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 119,
+      "hasStructuralAnalysis": true
+    },
+    "package.json": {
+      "filePath": "package.json",
+      "contentHash": "870208b2a9822b8e68f33d471f1655a5a401894d40f1ee334f9c3222aae6c73a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 23,
+      "hasStructuralAnalysis": true
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "cfbf596f87c91d67b1b8a0bbee04f46a2df3c28c6f6b3d402269e58cf845062b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/dev.bat": {
+      "filePath": "scripts/dev.bat",
+      "contentHash": "6a0ab9b4e69858133242fdba35148bb43dcf67a11ba2abf452cb9d43fbe937df",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 36,
+      "hasStructuralAnalysis": false
+    },
+    "scripts/setup.bat": {
+      "filePath": "scripts/setup.bat",
+      "contentHash": "c16bbbd5b0b8c058c529c350c7f6a78cf5b2d9f873728c4cfcadfb37da871e62",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 52,
+      "hasStructuralAnalysis": false
+    },
+    "skills/reminder/handler.py": {
+      "filePath": "skills/reminder/handler.py",
+      "contentHash": "700db96f9fd9866f15332043c83058773e36f9ff95ef7f0956e64e5315f16049",
+      "functions": [
+        {
+          "name": "execute",
+          "params": [
+            "params"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "execute"
+      ],
+      "totalLines": 6,
+      "hasStructuralAnalysis": true
+    },
+    "skills/reminder/manifest.json": {
+      "filePath": "skills/reminder/manifest.json",
+      "contentHash": "ffaa36b240b6b7bb4d382f7b82b1ff130b6672a45637d2c8fedb202404cbd950",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "skills/reminder/prompt.md": {
+      "filePath": "skills/reminder/prompt.md",
+      "contentHash": "49e4ae3665662f9d402b813be260637c799b2f6eaafca383c351e27115e1a881",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "skills/schedule/handler.py": {
+      "filePath": "skills/schedule/handler.py",
+      "contentHash": "09feddf6cd363d342b47147a086728edb5fce6b0a04c0c1423da9e2a785b6c38",
+      "functions": [
+        {
+          "name": "execute",
+          "params": [
+            "params"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "execute"
+      ],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "skills/schedule/manifest.json": {
+      "filePath": "skills/schedule/manifest.json",
+      "contentHash": "c3b955bc232a454c795cb0a0a6e34e2dd0480b6075543b37d65fb6d1dd13e5e8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "skills/schedule/prompt.md": {
+      "filePath": "skills/schedule/prompt.md",
+      "contentHash": "aa38c480e42400bdb2a6513447627888d60062386fde36a0268a8ba810b2f0ab",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "skills/weather/handler.py": {
+      "filePath": "skills/weather/handler.py",
+      "contentHash": "1fd6627db58a135b2b357ca26ef803bfe145fdf88c99ece47a736a8722abe629",
+      "functions": [
+        {
+          "name": "execute",
+          "params": [
+            "params"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "execute"
+      ],
+      "totalLines": 5,
+      "hasStructuralAnalysis": true
+    },
+    "skills/weather/manifest.json": {
+      "filePath": "skills/weather/manifest.json",
+      "contentHash": "784a37aa14290bc0a86d5100e3a87fd7ffa7bd1c04c3a064a3c81729f8872b58",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "skills/weather/prompt.md": {
+      "filePath": "skills/weather/prompt.md",
+      "contentHash": "9a802a4160d0e7a809cf366829406c358f306e4a3fdf3b3be0782c226ef5ab42",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/electron/main/config.js": {
+      "filePath": "src/electron/main/config.js",
+      "contentHash": "bcd369bbef93e020bf74828d10259b69e7fc43ee76f684d2c13ae92b02f077a0",
+      "functions": [
+        {
+          "name": "loadConfig",
+          "params": [],
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "parseSimpleYaml",
+          "params": [
+            "content"
+          ],
+          "exported": false,
+          "lineCount": 49
+        },
+        {
+          "name": "parseValue",
+          "params": [
+            "str"
+          ],
+          "exported": false,
+          "lineCount": 36
+        },
+        {
+          "name": "getDefaultConfig",
+          "params": [],
+          "exported": false,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 130,
+      "hasStructuralAnalysis": true
+    },
+    "src/electron/main/ipc.js": {
+      "filePath": "src/electron/main/ipc.js",
+      "contentHash": "9b45f3c3018380726af68474ec3ea0f82d1d4dac17010d655a6bda26ca95aa7a",
+      "functions": [
+        {
+          "name": "createIPC",
+          "params": [
+            "mainWindow"
+          ],
+          "exported": false,
+          "lineCount": 85
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 95,
+      "hasStructuralAnalysis": true
+    },
+    "src/electron/main/main.js": {
+      "filePath": "src/electron/main/main.js",
+      "contentHash": "04e2acc87134eec9c02990a2cae806af528049e68ba2c88a4e855f37692d6ee6",
+      "functions": [
+        {
+          "name": "setAutoStart",
+          "params": [
+            "enabled"
+          ],
+          "exported": false,
+          "lineCount": 19
+        },
+        {
+          "name": "spawnPython",
+          "params": [],
+          "exported": false,
+          "lineCount": 40
+        },
+        {
+          "name": "readPortFile",
+          "params": [],
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "connectWebSocket",
+          "params": [],
+          "exported": false,
+          "lineCount": 35
+        },
+        {
+          "name": "scheduleReconnect",
+          "params": [],
+          "exported": false,
+          "lineCount": 15
+        },
+        {
+          "name": "startHeartbeat",
+          "params": [],
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "stopHeartbeat",
+          "params": [],
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "sendMessage",
+          "params": [
+            "msg"
+          ],
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "generateUUID",
+          "params": [],
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "handleMessage",
+          "params": [
+            "msg"
+          ],
+          "exported": false,
+          "lineCount": 140
+        },
+        {
+          "name": "createWindow",
+          "params": [],
+          "exported": false,
+          "lineCount": 47
+        },
+        {
+          "name": "saveWindowBounds",
+          "params": [],
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "createPreviewWindow",
+          "params": [],
+          "exported": false,
+          "lineCount": 26
+        },
+        {
+          "name": "closePreviewWindow",
+          "params": [],
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "createTray",
+          "params": [],
+          "exported": false,
+          "lineCount": 95
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 585,
+      "hasStructuralAnalysis": true
+    },
+    "src/electron/main/preload.js": {
+      "filePath": "src/electron/main/preload.js",
+      "contentHash": "3045ed0943b29865ec827c14a95531263c6bb26840f38bfc8286a6f4fef0017a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 286,
+      "hasStructuralAnalysis": true
+    },
+    "src/electron/renderer/app.js": {
+      "filePath": "src/electron/renderer/app.js",
+      "contentHash": "59f2342f0023f532a156af7e17bd49e98815f6a6c5b2d1c5b17c9707095afc43",
+      "functions": [
+        {
+          "name": "upsertTask",
+          "params": [
+            "task"
+          ],
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "$",
+          "params": [
+            "id"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getRoleBadge",
+          "params": [
+            "r"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getRoleName",
+          "params": [
+            "r"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "formatTime",
+          "params": [
+            "ts"
+          ],
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "escAttr",
+          "params": [
+            "s"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "escHtml",
+          "params": [
+            "s"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setOrbState",
+          "params": [
+            "state"
+          ],
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "setChipState",
+          "params": [
+            "chip",
+            "active"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "updateUserIdentity",
+          "params": [
+            "id"
+          ],
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "updateTime",
+          "params": [],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "showToast",
+          "params": [
+            "msg",
+            "type"
+          ],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "showConfirmDialog",
+          "params": [
+            "title",
+            "message",
+            "onConfirm"
+          ],
+          "exported": false,
+          "lineCount": 21
+        },
+        {
+          "name": "openPanel",
+          "params": [
+            "name"
+          ],
+          "exported": false,
+          "lineCount": 19
+        },
+        {
+          "name": "openChat",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "closeChat",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "sendMessage",
+          "params": [],
+          "exported": false,
+          "lineCount": 19
+        },
+        {
+          "name": "loadSettings",
+          "params": [],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "populateSettingsForm",
+          "params": [
+            "config"
+          ],
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "flattenConfig",
+          "params": [
+            "obj",
+            "prefix"
+          ],
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "unflattenConfig",
+          "params": [
+            "flat"
+          ],
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "loadDeviceLists",
+          "params": [],
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "navigateTo",
+          "params": [
+            "view"
+          ],
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "loadMemberManagementPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "renderMemberManagementList",
+          "params": [
+            "members"
+          ],
+          "exported": false,
+          "lineCount": 51
+        },
+        {
+          "name": "renderMemberManagementStats",
+          "params": [
+            "stats"
+          ],
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "openMemberDetail",
+          "params": [
+            "memberId"
+          ],
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "closeMemberDetail",
+          "params": [],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "renderMemberDetailModal",
+          "params": [
+            "member"
+          ],
+          "exported": false,
+          "lineCount": 24
+        },
+        {
+          "name": "openHistoryModal",
+          "params": [],
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "closeHistoryModal",
+          "params": [],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "renderHistoryTimeline",
+          "params": [
+            "items"
+          ],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "applyHistoryFilter",
+          "params": [],
+          "exported": false,
+          "lineCount": 32
+        },
+        {
+          "name": "refreshMemberPanel",
+          "params": [],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "renderMemberList",
+          "params": [
+            "members"
+          ],
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "renderPendingList",
+          "params": [
+            "pending"
+          ],
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "loadPersonaPanel",
+          "params": [],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "schedulePersonListRender",
+          "params": [],
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "renderPersonList",
+          "params": [
+            "members",
+            "pending"
+          ],
+          "exported": false,
+          "lineCount": 22
+        },
+        {
+          "name": "applyFilter",
+          "params": [],
+          "exported": false,
+          "lineCount": 64
+        },
+        {
+          "name": "openIdentifyDialog",
+          "params": [
+            "opts"
+          ],
+          "exported": false,
+          "lineCount": 40
+        },
+        {
+          "name": "closeIdentifyDialog",
+          "params": [],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "submitIdentify",
+          "params": [],
+          "exported": false,
+          "lineCount": 22
+        },
+        {
+          "name": "loadRoleInfoPanel",
+          "params": [],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "renderRoleInfoPanel",
+          "params": [
+            "roles"
+          ],
+          "exported": false,
+          "lineCount": 44
+        },
+        {
+          "name": "openWizard",
+          "params": [],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "closeWizard",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "goToStep",
+          "params": [
+            "n"
+          ],
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "refreshTaskDetailPanel",
+          "params": [],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "renderTaskDetailList",
+          "params": [
+            "tasks"
+          ],
+          "exported": false,
+          "lineCount": 26
+        },
+        {
+          "name": "renderNotifList",
+          "params": [
+            "notifs"
+          ],
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "cycleTaskState",
+          "params": [],
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "showGestureToast",
+          "params": [
+            "type",
+            "confidence"
+          ],
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "togglePauseBanner",
+          "params": [
+            "s"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "init",
+          "params": [],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "renderInlineTasks",
+          "params": [
+            "tasks"
+          ],
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "updateInlineConversation",
+          "params": [
+            "topic",
+            "meta",
+            "bubbles"
+          ],
+          "exported": false,
+          "lineCount": 7
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1214,
+      "hasStructuralAnalysis": true
+    },
+    "src/electron/renderer/index.html": {
+      "filePath": "src/electron/renderer/index.html",
+      "contentHash": "661564e5dd1e915e00ab985d96e7fc3855504f9d42285f54201ea0a587642a1c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 458,
+      "hasStructuralAnalysis": false
+    },
+    "src/electron/renderer/preview.css": {
+      "filePath": "src/electron/renderer/preview.css",
+      "contentHash": "b85435dd228f568c1cc97108a1af04dd73b85f2170b772c648813fb3050f1d4a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 432,
+      "hasStructuralAnalysis": false
+    },
+    "src/electron/renderer/preview.html": {
+      "filePath": "src/electron/renderer/preview.html",
+      "contentHash": "6da709f9be27818e28c177e4cfc5cf1638d072396c5e36a4ec054977781565c6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 128,
+      "hasStructuralAnalysis": false
+    },
+    "src/electron/renderer/preview.js": {
+      "filePath": "src/electron/renderer/preview.js",
+      "contentHash": "0c93956bc2dac4418d00bac4ae024c75fb965b04b21ab8b250940e0af9b0de50",
+      "functions": [
+        {
+          "name": "$",
+          "params": [
+            "id"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "resizeCanvas",
+          "params": [],
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "drawFrame",
+          "params": [],
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "drawDetections",
+          "params": [
+            "detections"
+          ],
+          "exported": false,
+          "lineCount": 94
+        },
+        {
+          "name": "drawPoseSkeleton",
+          "params": [
+            "landmarks",
+            "w",
+            "h",
+            "color"
+          ],
+          "exported": false,
+          "lineCount": 27
+        },
+        {
+          "name": "drawHandKeypoints",
+          "params": [
+            "landmarks",
+            "w",
+            "h",
+            "color"
+          ],
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "updateHud",
+          "params": [
+            "snapFrame",
+            "snapDetections"
+          ],
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "updateAudioVisuals",
+          "params": [
+            "data"
+          ],
+          "exported": false,
+          "lineCount": 34
+        },
+        {
+          "name": "updateBars",
+          "params": [
+            "container",
+            "bins",
+            "targetCount"
+          ],
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "updateOverlayBars",
+          "params": [
+            "container",
+            "bins",
+            "targetCount"
+          ],
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "toggleAudio",
+          "params": [],
+          "exported": false,
+          "lineCount": 15
+        },
+        {
+          "name": "init",
+          "params": [],
+          "exported": false,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 362,
+      "hasStructuralAnalysis": true
+    },
+    "src/electron/renderer/styles.css": {
+      "filePath": "src/electron/renderer/styles.css",
+      "contentHash": "50dbbe7e73278423c6873d62af4ef9ecff5ed7180579618ab4fd274bbb41c881",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1036,
+      "hasStructuralAnalysis": false
+    },
+    "src/python/__init__.py": {
+      "filePath": "src/python/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/__init__.py": {
+      "filePath": "src/python/modules/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/audio/__init__.py": {
+      "filePath": "src/python/modules/audio/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/audio/audio_pipeline.py": {
+      "filePath": "src/python/modules/audio/audio_pipeline.py",
+      "contentHash": "0bcb828132aa20e5ff36dbbaeb98c9e0059d7eb6adcfbc1123dbbe557532cf28",
+      "functions": [],
+      "classes": [
+        {
+          "name": "RingBuffer",
+          "methods": [
+            "__init__",
+            "append",
+            "get_all",
+            "get_segment",
+            "clear",
+            "__len__"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 41
+        },
+        {
+          "name": "AudioPipeline",
+          "methods": [
+            "__init__",
+            "set_on_voice_start",
+            "set_on_voice_end",
+            "set_on_wake_word",
+            "set_on_voiceprint",
+            "set_on_stt_trigger",
+            "set_on_error",
+            "set_preview_active",
+            "set_on_preview_spectrum",
+            "update_voiceprint_matches",
+            "enumerate_devices",
+            "start",
+            "stop",
+            "configure",
+            "_audio_callback",
+            "_process_loop",
+            "_detect_vad",
+            "_handle_vad",
+            "_try_extract_voiceprint",
+            "_detect_wake_word",
+            "_emit_voice_start",
+            "_emit_voice_end",
+            "_emit_wake_word",
+            "_emit_voiceprint",
+            "_emit_error",
+            "__repr__"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 542
+        }
+      ],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "threading",
+          "specifiers": [
+            "threading"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "collections",
+          "specifiers": [
+            "deque"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Callable"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        }
+      ],
+      "exports": [
+        "RingBuffer",
+        "AudioPipeline"
+      ],
+      "totalLines": 619,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/camera/__init__.py": {
+      "filePath": "src/python/modules/camera/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/camera/camera_pipeline.py": {
+      "filePath": "src/python/modules/camera/camera_pipeline.py",
+      "contentHash": "4e7cd4927794df7770e37ee04de4c22288fd49c0b184032588c8dfac69fc1a0e",
+      "functions": [],
+      "classes": [
+        {
+          "name": "CameraPipeline",
+          "methods": [
+            "__init__",
+            "set_on_face_detected",
+            "set_on_face_lost",
+            "set_on_face_embedding",
+            "set_on_pose_frame",
+            "set_on_error",
+            "set_state_provider",
+            "set_preview_active",
+            "set_on_preview_frame",
+            "set_on_preview_detections",
+            "capture_face_thumbnail",
+            "is_insightface_ready",
+            "_init_insightface",
+            "enumerate_devices",
+            "start",
+            "stop",
+            "configure",
+            "_capture_loop",
+            "_detect_with_insightface",
+            "_detect_with_mediapipe",
+            "_check_embedding_quality",
+            "_update_fps",
+            "_emit_face_detected",
+            "_emit_face_lost",
+            "_emit_error",
+            "__repr__"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 496
+        }
+      ],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Callable"
+          ]
+        },
+        {
+          "source": "cv2",
+          "specifiers": [
+            "cv2"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        }
+      ],
+      "exports": [
+        "CameraPipeline"
+      ],
+      "totalLines": 531,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/fusion/__init__.py": {
+      "filePath": "src/python/modules/fusion/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/fusion/identity_fusion.py": {
+      "filePath": "src/python/modules/fusion/identity_fusion.py",
+      "contentHash": "08a8a20f503a8ff43c8972ea1f05f487f8789625393eae463086daf66cee5dea",
+      "functions": [],
+      "classes": [
+        {
+          "name": "IdentityStatus",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "ModalityEvidence",
+          "methods": [
+            "is_valid"
+          ],
+          "properties": [
+            "member_id",
+            "display_name",
+            "score",
+            "timestamp",
+            "source"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "IdentityState",
+          "methods": [],
+          "properties": [
+            "member_id",
+            "display_name",
+            "role",
+            "status",
+            "confidence",
+            "face_evidence",
+            "voice_evidence",
+            "evidence_count",
+            "last_updated",
+            "tentative_since"
+          ],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "IdentityFusionEngine",
+          "methods": [
+            "__init__",
+            "set_on_identity_confirmed",
+            "set_on_identity_changing",
+            "set_on_identity_unknown",
+            "set_on_error",
+            "submit_face_evidence",
+            "submit_voice_evidence",
+            "_evaluate",
+            "_check_auto_discovery",
+            "start",
+            "stop",
+            "_process_loop",
+            "get_current_identity",
+            "reset_identity",
+            "_state_to_dict",
+            "_emit_identity_confirmed",
+            "_emit_identity_changing",
+            "_emit_identity_unknown"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 354
+        }
+      ],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "collections",
+          "specifiers": [
+            "deque"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass",
+            "field"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timezone"
+          ]
+        },
+        {
+          "source": "enum",
+          "specifiers": [
+            "Enum"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Callable"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "src.python.shared.database",
+          "specifiers": [
+            "search_by_face_embedding",
+            "search_by_voice_embedding",
+            "search_unidentified_by_face",
+            "add_unidentified",
+            "update_unidentified",
+            "get_next_visitor_name",
+            "get_member",
+            "update_member"
+          ]
+        }
+      ],
+      "exports": [
+        "IdentityStatus",
+        "ModalityEvidence",
+        "IdentityState",
+        "IdentityFusionEngine"
+      ],
+      "totalLines": 428,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/llm/__init__.py": {
+      "filePath": "src/python/modules/llm/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/llm/llm_provider.py": {
+      "filePath": "src/python/modules/llm/llm_provider.py",
+      "contentHash": "180cc022fd943173f4c2b819a08660929e058e9839fecbe83d3eb5bc4355bacd",
+      "functions": [],
+      "classes": [
+        {
+          "name": "LLMProvider",
+          "methods": [
+            "generate",
+            "generate_stream"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "OpenAIProvider",
+          "methods": [
+            "__init__",
+            "_get_client",
+            "generate",
+            "generate_stream"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 57
+        },
+        {
+          "name": "OllamaProvider",
+          "methods": [
+            "__init__",
+            "_call",
+            "generate",
+            "generate_stream",
+            "is_available"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 72
+        },
+        {
+          "name": "LLMManager",
+          "methods": [
+            "__init__",
+            "set_on_token",
+            "set_on_response",
+            "set_on_error",
+            "initialize",
+            "build_system_prompt",
+            "add_to_history",
+            "clear_history",
+            "chat",
+            "_stream_with_fallback"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 130
+        }
+      ],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "abc",
+          "specifiers": [
+            "ABC",
+            "abstractmethod"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "AsyncGenerator",
+            "Callable"
+          ]
+        }
+      ],
+      "exports": [
+        "LLMProvider",
+        "OpenAIProvider",
+        "OllamaProvider",
+        "LLMManager"
+      ],
+      "totalLines": 328,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/members/__init__.py": {
+      "filePath": "src/python/modules/members/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/members/member_manager.py": {
+      "filePath": "src/python/modules/members/member_manager.py",
+      "contentHash": "4dbd4ae1d4a403ee448b8790af93920bd0e30f855632ec9008f77fe6a2aa87bd",
+      "functions": [],
+      "classes": [
+        {
+          "name": "RegistrationStep",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "RegistrationSession",
+          "methods": [
+            "face_progress",
+            "voice_progress",
+            "is_face_done",
+            "is_voice_done"
+          ],
+          "properties": [
+            "session_id",
+            "display_name",
+            "role",
+            "step",
+            "face_samples",
+            "voice_samples",
+            "face_required",
+            "voice_required",
+            "created_at"
+          ],
+          "exported": true,
+          "lineCount": 27
+        },
+        {
+          "name": "MemberManager",
+          "methods": [
+            "__init__",
+            "get_stats",
+            "get_member_info",
+            "get_member_history",
+            "set_on_registration_update",
+            "start_registration",
+            "set_registration_info",
+            "add_face_sample",
+            "add_voice_sample",
+            "verify_and_register",
+            "cancel_registration",
+            "_get_registration_status",
+            "get_voice_sample_sentence",
+            "get_member",
+            "list_members",
+            "list_pending",
+            "identify_person",
+            "update_member_info",
+            "remove_member",
+            "clear_all_records",
+            "update_voiceprint_spectrum",
+            "update_unidentified_spectrum",
+            "update_face_thumbnail",
+            "update_unidentified_thumbnail"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 302
+        }
+      ],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "random",
+          "specifiers": [
+            "random"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass",
+            "field"
+          ]
+        },
+        {
+          "source": "enum",
+          "specifiers": [
+            "Enum"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Callable"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "src.python.shared.database",
+          "specifiers": [
+            "add_member",
+            "get_member",
+            "update_member",
+            "delete_member",
+            "list_all_members",
+            "list_unidentified",
+            "convert_to_member",
+            "get_database_stats",
+            "update_unidentified"
+          ]
+        }
+      ],
+      "exports": [
+        "RegistrationStep",
+        "RegistrationSession",
+        "MemberManager"
+      ],
+      "totalLines": 387,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/multi_person/__init__.py": {
+      "filePath": "src/python/modules/multi_person/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/multi_person/multi_person.py": {
+      "filePath": "src/python/modules/multi_person/multi_person.py",
+      "contentHash": "13149c263a7ffcb4efa0ff63873eb9c1638150d689fc0b849fc6c30f3eba8ec6",
+      "functions": [],
+      "classes": [
+        {
+          "name": "MultiPersonState",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "PersonSlot",
+          "methods": [],
+          "properties": [
+            "person_id",
+            "display_name",
+            "role",
+            "face_embedding",
+            "detected_at",
+            "last_seen",
+            "session_active"
+          ],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "MultiPersonManager",
+          "methods": [
+            "__init__",
+            "set_on_state_change",
+            "set_on_person_join",
+            "set_on_person_leave",
+            "state",
+            "person_count",
+            "is_multi",
+            "update_person",
+            "remove_person",
+            "_check_state_transition",
+            "on_all_identified",
+            "activate_session",
+            "deactivate_session",
+            "get_primary_person",
+            "get_secondary_persons",
+            "get_status",
+            "_transition"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 185
+        }
+      ],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass",
+            "field"
+          ]
+        },
+        {
+          "source": "enum",
+          "specifiers": [
+            "Enum"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Callable"
+          ]
+        }
+      ],
+      "exports": [
+        "MultiPersonState",
+        "PersonSlot",
+        "MultiPersonManager"
+      ],
+      "totalLines": 222,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/notification/__init__.py": {
+      "filePath": "src/python/modules/notification/__init__.py",
+      "contentHash": "c01a4a49e4116b7d119cd8472578eec1847264fcba18709483e626af39cc2dff",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": ".notifier",
+          "specifiers": [
+            "ExternalNotifier"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/notification/notifier.py": {
+      "filePath": "src/python/modules/notification/notifier.py",
+      "contentHash": "9cff0491f7f8490bdfa32844df6dd827e967754678563c7c505d3ef9bb1320cf",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ExternalNotifier",
+          "methods": [
+            "__init__",
+            "send_email",
+            "send_im",
+            "notify_owners"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 27
+        }
+      ],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        }
+      ],
+      "exports": [
+        "ExternalNotifier"
+      ],
+      "totalLines": 41,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/pose/__init__.py": {
+      "filePath": "src/python/modules/pose/__init__.py",
+      "contentHash": "abb0905857703f3345ba5c847d567752dfb0638897e0f8a7a5725dd0ee8c4fe4",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": ".pose_types",
+          "specifiers": [
+            "PoseFrame",
+            "GestureEvent"
+          ]
+        },
+        {
+          "source": ".pose_module",
+          "specifiers": [
+            "PoseModule"
+          ]
+        },
+        {
+          "source": ".gesture_classifier",
+          "specifiers": [
+            "GestureClassifier"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/pose/gesture_classifier.py": {
+      "filePath": "src/python/modules/pose/gesture_classifier.py",
+      "contentHash": "c69313ed9c17a20e9cc4f1f0b8597cbd20cff6d7961df6fb9c16743f0ea171cc",
+      "functions": [],
+      "classes": [
+        {
+          "name": "GestureClassifier",
+          "methods": [
+            "__init__",
+            "process_frame",
+            "_check_quality",
+            "classify_gesture",
+            "_apply_debounce",
+            "_detect_raise_hand",
+            "_detect_point",
+            "_detect_wave",
+            "_detect_come_closer",
+            "_dtw_distance",
+            "_sequence_to_feature",
+            "register_custom_gesture",
+            "match_custom_gesture",
+            "delete_custom_gesture",
+            "list_custom_gestures"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 398
+        }
+      ],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "uuid"
+          ]
+        },
+        {
+          "source": "collections",
+          "specifiers": [
+            "deque"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Optional"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": ".pose_types",
+          "specifiers": [
+            "PoseFrame",
+            "GestureEvent"
+          ]
+        }
+      ],
+      "exports": [
+        "GestureClassifier"
+      ],
+      "totalLines": 432,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/pose/pose_module.py": {
+      "filePath": "src/python/modules/pose/pose_module.py",
+      "contentHash": "b14f92a449845b4253085a54f88cea8748233fc96a4748d1e9ba337e7b4f7ba9",
+      "functions": [],
+      "classes": [
+        {
+          "name": "PoseModule",
+          "methods": [
+            "__init__",
+            "set_on_gesture_detected",
+            "set_state_provider",
+            "is_ready",
+            "initialize",
+            "extract_pose",
+            "classify_gesture",
+            "register_custom_gesture",
+            "match_custom_gesture",
+            "delete_custom_gesture",
+            "list_custom_gestures",
+            "register_action_slot",
+            "register_default_actions",
+            "_dispatch_gesture",
+            "bind_custom_action",
+            "unbind_custom_action",
+            "list_bindings",
+            "process_frame",
+            "close",
+            "__repr__"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 296
+        }
+      ],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Callable",
+            "Optional"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": ".pose_types",
+          "specifiers": [
+            "PoseFrame",
+            "GestureEvent"
+          ]
+        },
+        {
+          "source": ".gesture_classifier",
+          "specifiers": [
+            "GestureClassifier"
+          ]
+        }
+      ],
+      "exports": [
+        "PoseModule"
+      ],
+      "totalLines": 323,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/pose/pose_types.py": {
+      "filePath": "src/python/modules/pose/pose_types.py",
+      "contentHash": "f7d7e33ccf6f4daaafa3a89ff9df141fc43867ede863b2fdd10c0bafde0d6dcd",
+      "functions": [],
+      "classes": [
+        {
+          "name": "PoseFrame",
+          "methods": [],
+          "properties": [
+            "body_landmarks",
+            "left_hand_landmarks",
+            "right_hand_landmarks",
+            "frame_timestamp"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "GestureEvent",
+          "methods": [],
+          "properties": [
+            "gesture_type",
+            "confidence",
+            "gesture_id",
+            "direction"
+          ],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "imports": [
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Optional"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        }
+      ],
+      "exports": [
+        "PoseFrame",
+        "GestureEvent"
+      ],
+      "totalLines": 30,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/role/__init__.py": {
+      "filePath": "src/python/modules/role/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/role/role_manager.py": {
+      "filePath": "src/python/modules/role/role_manager.py",
+      "contentHash": "82b156104916b840fa226fe1e30b1fc471bd0cc8eaaa5ada5707972621cce2cb",
+      "functions": [],
+      "classes": [
+        {
+          "name": "Role",
+          "methods": [
+            "from_string"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "SessionContext",
+          "methods": [],
+          "properties": [
+            "member_id",
+            "display_name",
+            "role",
+            "session_start",
+            "daily_usage_seconds"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "RoleManager",
+          "methods": [
+            "__init__",
+            "create_session",
+            "end_session",
+            "get_session",
+            "can_execute",
+            "record_usage",
+            "check_preemption",
+            "reset_daily_usage",
+            "get_role_info",
+            "get_all_roles",
+            "get_all_roles_info",
+            "get_role_detail"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 168
+        }
+      ],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass",
+            "field"
+          ]
+        },
+        {
+          "source": "enum",
+          "specifiers": [
+            "IntEnum"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Callable"
+          ]
+        }
+      ],
+      "exports": [
+        "Role",
+        "SessionContext",
+        "RoleManager"
+      ],
+      "totalLines": 275,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/skill_loader/__init__.py": {
+      "filePath": "src/python/modules/skill_loader/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/skill_loader/skill_loader.py": {
+      "filePath": "src/python/modules/skill_loader/skill_loader.py",
+      "contentHash": "c92a08d3ec5e633af37fbc9992cb5f5b78b2b48514c8b53f896b156373569f25",
+      "functions": [
+        {
+          "name": "_run_skill_subprocess",
+          "params": [
+            "path",
+            "params_json",
+            "q"
+          ],
+          "exported": true,
+          "lineCount": 16
+        }
+      ],
+      "classes": [
+        {
+          "name": "SkillPlugin",
+          "methods": [
+            "__init__",
+            "load",
+            "get_prompt_context",
+            "is_loaded"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 44
+        },
+        {
+          "name": "SkillLoader",
+          "methods": [
+            "__init__",
+            "set_on_skills_changed",
+            "discover",
+            "get_llm_context",
+            "execute_skill",
+            "list_skills",
+            "start_watcher"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 126
+        }
+      ],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "multiprocessing",
+          "specifiers": [
+            "multiprocessing"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Callable"
+          ]
+        }
+      ],
+      "exports": [
+        "_run_skill_subprocess",
+        "SkillPlugin",
+        "SkillLoader"
+      ],
+      "totalLines": 210,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/state/__init__.py": {
+      "filePath": "src/python/modules/state/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/state/state_machine.py": {
+      "filePath": "src/python/modules/state/state_machine.py",
+      "contentHash": "01cd0042be46525979e89c5e0a23a7a3c1af3085a99304a82aeb25abc898ef63",
+      "functions": [],
+      "classes": [
+        {
+          "name": "State",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "StateMachine",
+          "methods": [
+            "__init__",
+            "set_on_state_changed",
+            "set_identity",
+            "get_current_state",
+            "get_state_provider",
+            "transition",
+            "on_event",
+            "_do_transition",
+            "_timeout_monitor",
+            "stop",
+            "__repr__"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 203
+        }
+      ],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timezone"
+          ]
+        },
+        {
+          "source": "enum",
+          "specifiers": [
+            "Enum"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Callable"
+          ]
+        }
+      ],
+      "exports": [
+        "State",
+        "StateMachine"
+      ],
+      "totalLines": 229,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/stt/__init__.py": {
+      "filePath": "src/python/modules/stt/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/stt/speech_to_text.py": {
+      "filePath": "src/python/modules/stt/speech_to_text.py",
+      "contentHash": "cf0cdfa1475f4f19f78909b3b1d420540119ccbc693c74f28b7974c8fe5ac0c2",
+      "functions": [],
+      "classes": [
+        {
+          "name": "SpeechToText",
+          "methods": [
+            "__init__",
+            "set_on_transcription",
+            "set_on_error",
+            "is_ready",
+            "load_model",
+            "transcribe",
+            "transcribe_sync"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 135
+        }
+      ],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Callable"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        }
+      ],
+      "exports": [
+        "SpeechToText"
+      ],
+      "totalLines": 156,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/task_manager/__init__.py": {
+      "filePath": "src/python/modules/task_manager/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/task_manager/task_manager.py": {
+      "filePath": "src/python/modules/task_manager/task_manager.py",
+      "contentHash": "2228c7fa1cc9629a437d466976ac85bd4fc8d30913dbe0b887e93e04bcf8bd21",
+      "functions": [],
+      "classes": [
+        {
+          "name": "TaskStatus",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "ExceptionLevel",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "ManagedTask",
+          "methods": [],
+          "properties": [
+            "task_id",
+            "user_id",
+            "display_name",
+            "command",
+            "status",
+            "progress",
+            "created_at",
+            "started_at",
+            "completed_at",
+            "error_info",
+            "retry_count",
+            "max_retries",
+            "result"
+          ],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "TaskManager",
+          "methods": [
+            "__init__",
+            "set_on_task_update",
+            "set_on_task_completed",
+            "set_on_task_failed",
+            "set_on_user_decision_needed",
+            "register_handler",
+            "classify_command",
+            "submit",
+            "_process_next",
+            "_handle_exception",
+            "_execute_inline",
+            "query_task",
+            "list_user_tasks",
+            "list_all_tasks",
+            "_task_to_dict",
+            "_notify_update"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 197
+        }
+      ],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "uuid"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass",
+            "field"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timezone"
+          ]
+        },
+        {
+          "source": "enum",
+          "specifiers": [
+            "Enum"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Callable"
+          ]
+        }
+      ],
+      "exports": [
+        "TaskStatus",
+        "ExceptionLevel",
+        "ManagedTask",
+        "TaskManager"
+      ],
+      "totalLines": 248,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/tts/__init__.py": {
+      "filePath": "src/python/modules/tts/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/tts/text_to_speech.py": {
+      "filePath": "src/python/modules/tts/text_to_speech.py",
+      "contentHash": "a6682a848a5f4238d84b9a707ef99adcd3f1852e3147da16a4e02186d44de080",
+      "functions": [],
+      "classes": [
+        {
+          "name": "TextToSpeech",
+          "methods": [
+            "__init__",
+            "set_on_start",
+            "set_on_complete",
+            "set_on_unavailable",
+            "is_speaking",
+            "speak",
+            "_play_audio",
+            "stop",
+            "set_voice",
+            "set_speed"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 112
+        }
+      ],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "io",
+          "specifiers": [
+            "io"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "tempfile",
+          "specifiers": [
+            "tempfile"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Callable"
+          ]
+        }
+      ],
+      "exports": [
+        "TextToSpeech"
+      ],
+      "totalLines": 129,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/visual_intent/__init__.py": {
+      "filePath": "src/python/modules/visual_intent/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/visual_intent/visual_intent.py": {
+      "filePath": "src/python/modules/visual_intent/visual_intent.py",
+      "contentHash": "5037a71271d546b2f8df77c93333916d3a04de87ca14f7a77ccd95e1d4007c33",
+      "functions": [],
+      "classes": [
+        {
+          "name": "VisualIntentDetector",
+          "methods": [
+            "__init__",
+            "set_on_gaze_detected",
+            "set_on_nod",
+            "set_on_shake",
+            "set_on_wave",
+            "is_ready",
+            "initialize",
+            "process_frame",
+            "_detect_gaze",
+            "_detect_nod",
+            "_detect_shake",
+            "_detect_wave",
+            "close"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 239
+        }
+      ],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "collections",
+          "specifiers": [
+            "deque"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Callable"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        }
+      ],
+      "exports": [
+        "VisualIntentDetector"
+      ],
+      "totalLines": 263,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/wakefree/__init__.py": {
+      "filePath": "src/python/modules/wakefree/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/modules/wakefree/wakefree_commands.py": {
+      "filePath": "src/python/modules/wakefree/wakefree_commands.py",
+      "contentHash": "ff7eb3eaa74800b0f0cf0b3b359c493e9ceb70f2e110565a0a3646bb6edbfbc0",
+      "functions": [],
+      "classes": [
+        {
+          "name": "WakeFreeCommand",
+          "methods": [],
+          "properties": [
+            "keywords",
+            "action",
+            "condition",
+            "enabled",
+            "description"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "WakeFreeManager",
+          "methods": [
+            "__init__",
+            "set_on_command_executed",
+            "set_on_command_blocked",
+            "set_condition_provider",
+            "set_action_handler",
+            "_build_index",
+            "add_command",
+            "remove_command",
+            "list_commands",
+            "match",
+            "check_condition",
+            "execute"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 113
+        }
+      ],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass",
+            "field"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Callable"
+          ]
+        }
+      ],
+      "exports": [
+        "WakeFreeCommand",
+        "WakeFreeManager"
+      ],
+      "totalLines": 156,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/requirements.txt": {
+      "filePath": "src/python/requirements.txt",
+      "contentHash": "77bc62ecb3560f093e5d96a8ea424977bfbc863e84864c3a091ab541e722b112",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 45,
+      "hasStructuralAnalysis": false
+    },
+    "src/python/server/__init__.py": {
+      "filePath": "src/python/server/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/server/conversation.py": {
+      "filePath": "src/python/server/conversation.py",
+      "contentHash": "1cf423dd5bebdcb7a8b7c83f7552eb32b30cba18e2f84d4d25d245f9c16b37b3",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ChatSubState",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "ConversationOrchestrator",
+          "methods": [
+            "__init__",
+            "set_modules",
+            "set_on_sub_state_change",
+            "set_on_user_message",
+            "set_on_assistant_message",
+            "sub_state",
+            "set_identity",
+            "_change_sub_state",
+            "handle_wake_word",
+            "process_speech",
+            "handle_text_input",
+            "get_status"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 152
+        }
+      ],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "enum",
+          "specifiers": [
+            "Enum"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Callable"
+          ]
+        }
+      ],
+      "exports": [
+        "ChatSubState",
+        "ConversationOrchestrator"
+      ],
+      "totalLines": 175,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/server/main.py": {
+      "filePath": "src/python/server/main.py",
+      "contentHash": "c11ec04a793279adee3394ddcfcc5962bc510719b1280560f38afe1f78224759",
+      "functions": [
+        {
+          "name": "generate_msg_id",
+          "params": [],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "now_iso",
+          "params": [],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "send_message",
+          "params": [
+            "websocket",
+            "msg_type",
+            "payload",
+            "in_reply_to"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "send_error",
+          "params": [
+            "websocket",
+            "code",
+            "message",
+            "recoverable",
+            "suggestion",
+            "in_reply_to"
+          ],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "handle_message",
+          "params": [
+            "websocket",
+            "raw_msg"
+          ],
+          "exported": true,
+          "lineCount": 356
+        },
+        {
+          "name": "ws_handler",
+          "params": [
+            "websocket"
+          ],
+          "exported": true,
+          "lineCount": 30
+        },
+        {
+          "name": "broadcast_event",
+          "params": [
+            "msg_type",
+            "payload"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "on_face_detected",
+          "params": [
+            "payload"
+          ],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "on_face_lost",
+          "params": [
+            "payload"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "on_voice_start",
+          "params": [
+            "payload"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "on_voice_end",
+          "params": [
+            "payload"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "on_wake_word",
+          "params": [
+            "payload"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "on_state_changed",
+          "params": [
+            "transition_info"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "on_camera_error",
+          "params": [
+            "error_info"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "on_face_embedding",
+          "params": [
+            "embedding",
+            "confidence"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "on_voiceprint",
+          "params": [
+            "embedding",
+            "duration"
+          ],
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "_save_face_thumbnail",
+          "params": [
+            "person_id",
+            "is_member"
+          ],
+          "exported": true,
+          "lineCount": 33
+        },
+        {
+          "name": "on_identity_confirmed",
+          "params": [
+            "identity"
+          ],
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "on_identity_changing",
+          "params": [
+            "change_info"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "on_identity_unknown",
+          "params": [
+            "info"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "on_stt_trigger",
+          "params": [
+            "audio_data"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "on_chat_sub_state_change",
+          "params": [
+            "sub_state_info"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "on_user_message",
+          "params": [
+            "msg"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "on_assistant_message",
+          "params": [
+            "msg"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "on_multi_state_change",
+          "params": [
+            "state_info"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "on_person_join",
+          "params": [
+            "person_info"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "on_person_leave",
+          "params": [
+            "person_info"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "on_mic_error",
+          "params": [
+            "error_info"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "on_pose_frame",
+          "params": [
+            "frame_rgb",
+            "frame_w",
+            "frame_h"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "on_gesture_detected",
+          "params": [
+            "event"
+          ],
+          "exported": true,
+          "lineCount": 30
+        },
+        {
+          "name": "_sanitize_config",
+          "params": [
+            "cfg"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "find_available_port",
+          "params": [
+            "start_port",
+            "max_retries"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": true,
+          "lineCount": 245
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "signal",
+          "specifiers": [
+            "signal"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "uuid"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timezone"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "websockets",
+          "specifiers": [
+            "websockets"
+          ]
+        },
+        {
+          "source": "websockets.asyncio.server",
+          "specifiers": [
+            "serve"
+          ]
+        },
+        {
+          "source": "src.python.shared.config",
+          "specifiers": [
+            "get_config",
+            "update_config"
+          ]
+        },
+        {
+          "source": "src.python.shared.message",
+          "specifiers": [
+            "Message",
+            "ErrorMessage"
+          ]
+        },
+        {
+          "source": "src.python.shared.database",
+          "specifiers": [
+            "init_database"
+          ]
+        },
+        {
+          "source": "src.python.modules.state.state_machine",
+          "specifiers": [
+            "StateMachine"
+          ]
+        },
+        {
+          "source": "src.python.modules.camera.camera_pipeline",
+          "specifiers": [
+            "CameraPipeline"
+          ]
+        },
+        {
+          "source": "src.python.modules.audio.audio_pipeline",
+          "specifiers": [
+            "AudioPipeline"
+          ]
+        },
+        {
+          "source": "src.python.modules.fusion.identity_fusion",
+          "specifiers": [
+            "IdentityFusionEngine"
+          ]
+        },
+        {
+          "source": "src.python.modules.role.role_manager",
+          "specifiers": [
+            "RoleManager"
+          ]
+        },
+        {
+          "source": "src.python.modules.members.member_manager",
+          "specifiers": [
+            "MemberManager"
+          ]
+        },
+        {
+          "source": "src.python.modules.stt.speech_to_text",
+          "specifiers": [
+            "SpeechToText"
+          ]
+        },
+        {
+          "source": "src.python.modules.llm.llm_provider",
+          "specifiers": [
+            "LLMManager"
+          ]
+        },
+        {
+          "source": "src.python.modules.tts.text_to_speech",
+          "specifiers": [
+            "TextToSpeech"
+          ]
+        },
+        {
+          "source": "src.python.modules.wakefree.wakefree_commands",
+          "specifiers": [
+            "WakeFreeManager"
+          ]
+        },
+        {
+          "source": "src.python.modules.visual_intent.visual_intent",
+          "specifiers": [
+            "VisualIntentDetector"
+          ]
+        },
+        {
+          "source": "src.python.server.conversation",
+          "specifiers": [
+            "ConversationOrchestrator",
+            "ChatSubState"
+          ]
+        },
+        {
+          "source": "src.python.modules.multi_person.multi_person",
+          "specifiers": [
+            "MultiPersonManager"
+          ]
+        },
+        {
+          "source": "src.python.modules.task_manager.task_manager",
+          "specifiers": [
+            "TaskManager"
+          ]
+        },
+        {
+          "source": "src.python.modules.skill_loader.skill_loader",
+          "specifiers": [
+            "SkillLoader"
+          ]
+        },
+        {
+          "source": "src.python.modules.pose.pose_module",
+          "specifiers": [
+            "PoseModule",
+            "GestureEvent"
+          ]
+        },
+        {
+          "source": "src.python.modules.notification",
+          "specifiers": [
+            "ExternalNotifier"
+          ]
+        }
+      ],
+      "exports": [
+        "generate_msg_id",
+        "now_iso",
+        "send_message",
+        "send_error",
+        "handle_message",
+        "ws_handler",
+        "broadcast_event",
+        "on_face_detected",
+        "on_face_lost",
+        "on_voice_start",
+        "on_voice_end",
+        "on_wake_word",
+        "on_state_changed",
+        "on_camera_error",
+        "on_face_embedding",
+        "on_voiceprint",
+        "_save_face_thumbnail",
+        "on_identity_confirmed",
+        "on_identity_changing",
+        "on_identity_unknown",
+        "on_stt_trigger",
+        "on_chat_sub_state_change",
+        "on_user_message",
+        "on_assistant_message",
+        "on_multi_state_change",
+        "on_person_join",
+        "on_person_leave",
+        "on_mic_error",
+        "on_pose_frame",
+        "on_gesture_detected",
+        "_sanitize_config",
+        "find_available_port",
+        "main"
+      ],
+      "totalLines": 1024,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/shared/__init__.py": {
+      "filePath": "src/python/shared/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/shared/config.py": {
+      "filePath": "src/python/shared/config.py",
+      "contentHash": "fefdc3d9a278ea55c5f6b16ed089e738dd098bd6499baf8dff2c2cdb4a55d4c4",
+      "functions": [
+        {
+          "name": "get_config",
+          "params": [
+            "config_path"
+          ],
+          "returnType": "dict[str, Any]",
+          "exported": true,
+          "lineCount": 31
+        },
+        {
+          "name": "reload_config",
+          "params": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "_deep_merge",
+          "params": [
+            "base",
+            "update"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "update_config",
+          "params": [
+            "partial",
+            "config_path"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 34
+        },
+        {
+          "name": "_get_defaults",
+          "params": [],
+          "returnType": "dict[str, Any]",
+          "exported": true,
+          "lineCount": 55
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any"
+          ]
+        },
+        {
+          "source": "yaml",
+          "specifiers": [
+            "yaml"
+          ]
+        }
+      ],
+      "exports": [
+        "get_config",
+        "reload_config",
+        "_deep_merge",
+        "update_config",
+        "_get_defaults"
+      ],
+      "totalLines": 161,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/shared/database.py": {
+      "filePath": "src/python/shared/database.py",
+      "contentHash": "3f426e608fc7506bbfe5fc81ab26dd477de4075e1f9639aefac775bbff827350",
+      "functions": [
+        {
+          "name": "get_db_path",
+          "params": [],
+          "returnType": "Path",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "get_connection",
+          "params": [],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "init_database",
+          "params": [],
+          "exported": true,
+          "lineCount": 206
+        },
+        {
+          "name": "_secure_file",
+          "params": [
+            "path"
+          ],
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "serialize_embedding",
+          "params": [
+            "emb"
+          ],
+          "returnType": "bytes",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "deserialize_embedding",
+          "params": [
+            "data",
+            "dim"
+          ],
+          "returnType": "np.ndarray | None",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "cosine_similarity",
+          "params": [
+            "a",
+            "b"
+          ],
+          "returnType": "float",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "add_member",
+          "params": [
+            "display_name",
+            "role",
+            "face_emb",
+            "voice_emb",
+            "typical_distance",
+            "labeled"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "get_member",
+          "params": [
+            "member_id"
+          ],
+          "returnType": "dict | None",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "update_member",
+          "params": [
+            "member_id",
+            "**kwargs"
+          ],
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "delete_member",
+          "params": [
+            "member_id"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "list_all_members",
+          "params": [],
+          "returnType": "list[dict]",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "get_member_by_id",
+          "params": [
+            "member_id"
+          ],
+          "returnType": "dict | None",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "get_member_history",
+          "params": [
+            "member_id",
+            "max_age_days"
+          ],
+          "returnType": "list[dict]",
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "insert_command_history",
+          "params": [
+            "member_id",
+            "cmd_type",
+            "summary",
+            "detail"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "get_member_stats",
+          "params": [],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "list_unidentified",
+          "params": [],
+          "returnType": "list[dict]",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "search_by_face_embedding",
+          "params": [
+            "query_emb",
+            "top_n",
+            "threshold"
+          ],
+          "returnType": "list[tuple[dict, float]]",
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "search_by_voice_embedding",
+          "params": [
+            "query_emb",
+            "top_n",
+            "threshold"
+          ],
+          "returnType": "list[tuple[dict, float]]",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "search_unidentified_by_face",
+          "params": [
+            "query_emb",
+            "threshold"
+          ],
+          "returnType": "list[tuple[dict, float]]",
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "update_embeddings",
+          "params": [
+            "member_id",
+            "new_face_emb",
+            "new_voice_emb",
+            "weight_old"
+          ],
+          "exported": true,
+          "lineCount": 32
+        },
+        {
+          "name": "add_unidentified",
+          "params": [
+            "display_name",
+            "face_emb",
+            "voice_emb",
+            "typical_distance"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "update_unidentified",
+          "params": [
+            "person_id",
+            "face_emb",
+            "voice_emb"
+          ],
+          "exported": true,
+          "lineCount": 30
+        },
+        {
+          "name": "get_next_visitor_name",
+          "params": [],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "cleanup_unidentified",
+          "params": [
+            "days_threshold",
+            "min_appearances"
+          ],
+          "exported": true,
+          "lineCount": 27
+        },
+        {
+          "name": "convert_to_member",
+          "params": [
+            "unidentified_id",
+            "display_name",
+            "role"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 25
+        },
+        {
+          "name": "_row_to_dict",
+          "params": [
+            "row"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "_row_to_json_dict",
+          "params": [
+            "row"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "get_database_stats",
+          "params": [],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "sqlite3",
+          "specifiers": [
+            "sqlite3"
+          ]
+        },
+        {
+          "source": "threading",
+          "specifiers": [
+            "threading"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "contextlib",
+          "specifiers": [
+            "contextmanager"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timezone"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        }
+      ],
+      "exports": [
+        "get_db_path",
+        "get_connection",
+        "init_database",
+        "_secure_file",
+        "serialize_embedding",
+        "deserialize_embedding",
+        "cosine_similarity",
+        "add_member",
+        "get_member",
+        "update_member",
+        "delete_member",
+        "list_all_members",
+        "get_member_by_id",
+        "get_member_history",
+        "insert_command_history",
+        "get_member_stats",
+        "list_unidentified",
+        "search_by_face_embedding",
+        "search_by_voice_embedding",
+        "search_unidentified_by_face",
+        "update_embeddings",
+        "add_unidentified",
+        "update_unidentified",
+        "get_next_visitor_name",
+        "cleanup_unidentified",
+        "convert_to_member",
+        "_row_to_dict",
+        "_row_to_json_dict",
+        "get_database_stats"
+      ],
+      "totalLines": 740,
+      "hasStructuralAnalysis": true
+    },
+    "src/python/shared/message.py": {
+      "filePath": "src/python/shared/message.py",
+      "contentHash": "de49711e721bbb8b994acf2150e9976bd8791f8d835c4af11abcd0c8b72826ea",
+      "functions": [],
+      "classes": [
+        {
+          "name": "Message",
+          "methods": [
+            "to_dict"
+          ],
+          "properties": [
+            "type",
+            "payload",
+            "id",
+            "timestamp",
+            "in_reply_to"
+          ],
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "ErrorMessage",
+          "methods": [
+            "to_message"
+          ],
+          "properties": [
+            "code",
+            "message",
+            "recoverable",
+            "suggestion"
+          ],
+          "exported": true,
+          "lineCount": 21
+        }
+      ],
+      "imports": [
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass",
+            "field"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timezone"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "uuid"
+          ]
+        }
+      ],
+      "exports": [
+        "Message",
+        "ErrorMessage"
+      ],
+      "totalLines": 104,
+      "hasStructuralAnalysis": true
+    }
+  }
+}

@@ -126,12 +126,14 @@ class AudioPipeline:
         self._on_voiceprint: Callable | None = None  # Phase 2
         self._on_stt_trigger: Callable | None = None  # Phase 3
         self._on_error: Callable | None = None
+        self._on_voice_captured: Callable | None = None  # 声纹手动采集完成
 
         # 预览推送
         self._preview_active = False
         self._on_preview_spectrum: Callable | None = None
         self._current_level_db = -60.0  # 当前麦克风电平 (dB)，供 device.status 广播
         self._latest_voiceprint_matches: list = []  # 最新声纹匹配结果，供预览窗口
+        self._pending_voice_capture: dict | None = None  # 待处理的声纹采集请求 {member_id, started_at}
 
     # ─── 回调设置 ───────────────────────────────────────
 
@@ -162,6 +164,18 @@ class AudioPipeline:
     def set_on_preview_spectrum(self, callback: Callable):
         """预览频谱数据回调（FFT bins, VAD, level, pitch）"""
         self._on_preview_spectrum = callback
+
+    def set_on_voice_captured(self, callback: Callable):
+        """声纹手动采集完成回调"""
+        self._on_voice_captured = callback
+
+    def request_voice_capture(self, member_id: str):
+        """请求手动声纹采集：下次检测到语音时捕获并发送结果"""
+        self._pending_voice_capture = {
+            'member_id': member_id,
+            'started_at': time.time(),
+        }
+        logger.info(f'Voice capture requested for member {member_id[:8]}...')
 
     def update_voiceprint_matches(self, matches: list):
         """由融合引擎调用，更新当前声纹匹配结果供预览窗口显示"""
@@ -246,7 +260,8 @@ class AudioPipeline:
 
         # 打开音频流
         try:
-            device_index = self.device_id if self.device_id is not None else None
+            # 规范化 device_id: PyAudio 要求 int 或 None
+            device_index = self._normalize_audio_device_id(self.device_id)
             self._stream = self._pyaudio.open(
                 format=pyaudio.paInt16,
                 channels=self.channels,
@@ -292,6 +307,39 @@ class AudioPipeline:
         self._main_loop = None
 
         logger.info('Audio pipeline stopped')
+
+    def _normalize_audio_device_id(self, device_id) -> int | None:
+        """将 device_id 规范化为 PyAudio 可接受的 int 或 None。
+
+        浏览器 enumerateDevices() 返回字符串 deviceId（如 "default"），
+        但 PyAudio 要求整数索引。此方法尝试：
+        1. 已是 int/None → 直接返回
+        2. 数字字符串 → int(str)
+        3. 按名称匹配 PyAudio 设备列表
+        4. 以上均失败 → None（默认设备）
+        """
+        if device_id is None or isinstance(device_id, int):
+            return device_id
+        # 数字字符串 → int
+        if isinstance(device_id, str):
+            try:
+                return int(device_id)
+            except ValueError:
+                pass
+            # 按名称查找（浏览器 deviceId 可能是设备 label 的部分匹配）
+            if self._pyaudio:
+                try:
+                    for i in range(self._pyaudio.get_device_count()):
+                        info = self._pyaudio.get_device_info_by_index(i)
+                        if info.get('maxInputChannels', 0) > 0:
+                            name = info.get('name', '')
+                            if device_id.lower() in name.lower() or name.lower() in device_id.lower():
+                                logger.info(f'Resolved audio device "{device_id}" → index {i} ({name})')
+                                return i
+                except Exception:
+                    pass
+        logger.warning(f'Cannot normalize audio device_id="{device_id}", falling back to default')
+        return None
 
     async def configure(self, params: dict[str, Any]) -> dict[str, Any]:
         """动态更新配置"""
@@ -514,10 +562,22 @@ class AudioPipeline:
 
             logger.debug(f'Voiceprint extracted: duration={duration:.1f}s, SNR={snr:.1f}dB')
 
+            # 检查是否有待处理的手动采集请求
+            is_capture = self._pending_voice_capture is not None
+            capture_info = self._pending_voice_capture
+            if is_capture:
+                self._pending_voice_capture = None  # 一次性消费
+
             # 推送到回调
+            payload = {
+                'embedding': emb_np.tolist(),
+                'duration': duration,
+                'is_capture': is_capture,
+                'capture_member_id': capture_info['member_id'] if capture_info else None,
+            }
             if self._main_loop and self._main_loop.is_running():
                 future = asyncio.run_coroutine_threadsafe(
-                    self._emit_voiceprint({'embedding': emb_np.tolist(), 'duration': duration}),
+                    self._emit_voiceprint(payload),
                     self._main_loop
                 )
                 future.add_done_callback(
@@ -597,14 +657,12 @@ class AudioPipeline:
                 self._on_wake_word(payload)
 
     async def _emit_voiceprint(self, payload: dict):
-        """Phase 2: 声纹 embedding 事件"""
+        """Phase 2: 声纹 embedding 事件（含手动采集标记）"""
         if self._on_voiceprint:
-            emb_list = payload.get('embedding', [])
-            emb_np = np.array(emb_list, dtype=np.float32) if emb_list else None
             if asyncio.iscoroutinefunction(self._on_voiceprint):
-                await self._on_voiceprint(emb_np, payload.get('duration', 0))
+                await self._on_voiceprint(payload)
             else:
-                self._on_voiceprint(emb_np, payload.get('duration', 0))
+                self._on_voiceprint(payload)
 
     async def _emit_error(self, code: str, message: str, recoverable: bool, suggestion: str):
         payload = {'code': code, 'message': message, 'recoverable': recoverable, 'suggestion': suggestion}

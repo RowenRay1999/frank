@@ -243,11 +243,11 @@ class RoleManager:
                 'member_management': r == Role.OWNER,
                 'system_config': r == Role.OWNER,
                 'full_data_access': r == Role.OWNER,
-                'regular_skills': r in (Role.OWNER, Role.ADULT),
-                'smart_home_control': r in (Role.OWNER, Role.ADULT),
-                'calendar_notes': r in (Role.OWNER, Role.ADULT),
-                'file_operations': r in (Role.OWNER, Role.ADULT),
-                'third_party_skills': r in (Role.OWNER, Role.ADULT),
+                'regular_skills': r in (Role.OWNER, Role.ADMIN),
+                'smart_home_control': r in (Role.OWNER, Role.ADMIN),
+                'calendar_notes': r in (Role.OWNER, Role.ADMIN),
+                'file_operations': r in (Role.OWNER, Role.ADMIN),
+                'third_party_skills': r in (Role.OWNER, Role.ADMIN),
                 'session_preempt': r == Role.OWNER,
                 'basic_qa': True,  # 所有角色都可基础问答
             }
@@ -257,9 +257,10 @@ class RoleManager:
             base['daily_limit_minutes'] = limit // 60 if limit > 0 else 0
             base['description'] = {
                 'owner': '家庭管理员，拥有全部权限',
-                'adult': '成年家庭成员，可使用所有常规技能',
-                'child': '儿童成员，受限技能 + 每日使用时长限制',
+                'admin': '管理员，可使用所有常规技能',
+                'member': '家庭成员，受限技能 + 每日使用时长限制',
                 'guest': '临时访客，仅基础问答，不保留数据',
+                'unregistered': '未登记用户，极低权限',
             }.get(role_name, '')
 
             roles_info.append(base)

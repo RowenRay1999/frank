@@ -265,7 +265,7 @@ class MemberManager:
         如果 merge_to_member_id 指定，则将特征合并到该成员
         """
         if merge_to_member_id:
-            # 合并模式：更新现有成员的 embedding
+            # 合并模式：更新现有成员的 embedding + 转移缩略图和频谱
             unid = list_unidentified()
             target = next((p for p in unid if p['id'] == unidentified_id), None)
             if target:
@@ -278,9 +278,24 @@ class MemberManager:
                     face_emb = deserialize_embedding(target.get('face_embedding'), 512)
                     voice_emb = deserialize_embedding(target.get('voice_embedding'), 192)
                     update_embeddings(merge_to_member_id, new_face_emb=face_emb, new_voice_emb=voice_emb)
-                    # 删除未标识记录
+                    # 转移缩略图和频谱（仅当目标成员尚未拥有时）
                     from src.python.shared.database import get_connection
                     with get_connection() as conn:
+                        if target.get('face_thumbnail') and not existing.get('face_thumbnail'):
+                            conn.execute(
+                                "UPDATE members SET face_thumbnail = ? WHERE id = ?",
+                                (target['face_thumbnail'], merge_to_member_id),
+                            )
+                        if target.get('voiceprint_spectrum') and not existing.get('voiceprint_spectrum'):
+                            conn.execute(
+                                "UPDATE members SET voiceprint_spectrum = ? WHERE id = ?",
+                                (target['voiceprint_spectrum'], merge_to_member_id),
+                            )
+                        # 累积出现次数
+                        conn.execute(
+                            "UPDATE members SET appearance_count = appearance_count + ? WHERE id = ?",
+                            (target.get('appearance_count', 0), merge_to_member_id),
+                        )
                         conn.execute("DELETE FROM unidentified WHERE id = ?", (unidentified_id,))
                     logger.info(f'Merged unidentified {unidentified_id[:8]}... into member {merge_to_member_id[:8]}...')
                     return merge_to_member_id
@@ -315,6 +330,34 @@ class MemberManager:
         delete_member(member_id)
         logger.info(f'Member removed: {display_name} (anonymize_chat={anonymize_chat})')
 
+    @staticmethod
+    def clear_all_records() -> dict:
+        """清除所有人物记录（已标识成员 + 未标识访客 + 指令历史）
+        Returns: dict with deleted counts
+        """
+        from src.python.shared.database import get_connection
+        with get_connection() as conn:
+            members_count = conn.execute(
+                "SELECT COUNT(*) as c FROM members WHERE labeled = 1"
+            ).fetchone()['c']
+            unid_count = conn.execute(
+                "SELECT COUNT(*) as c FROM unidentified"
+            ).fetchone()['c']
+            history_count = conn.execute(
+                "SELECT COUNT(*) as c FROM command_history"
+            ).fetchone()['c']
+
+            conn.execute("DELETE FROM members WHERE labeled = 1")
+            conn.execute("DELETE FROM unidentified")
+            conn.execute("DELETE FROM command_history")
+
+        logger.info(f'All records cleared: {members_count} members, {unid_count} unidentified, {history_count} history')
+        return {
+            'members_deleted': members_count,
+            'unidentified_deleted': unid_count,
+            'history_deleted': history_count,
+        }
+
     # ─── 声纹频谱 ───────────────────────────────────────
 
     @staticmethod
@@ -325,6 +368,16 @@ class MemberManager:
             conn.execute(
                 "UPDATE members SET voiceprint_spectrum = ? WHERE id = ?",
                 (json.dumps(spectrum_bins), member_id)
+            )
+
+    @staticmethod
+    def update_voice_embedding(member_id: str, embedding):
+        """手动声纹重采样：更新成员声纹 embedding"""
+        from src.python.shared.database import get_connection, serialize_embedding
+        with get_connection() as conn:
+            conn.execute(
+                "UPDATE members SET voice_embedding = ? WHERE id = ?",
+                (serialize_embedding(embedding), member_id)
             )
 
     @staticmethod

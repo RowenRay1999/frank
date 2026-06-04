@@ -429,9 +429,6 @@ body {
 .chat-send:hover { background: var(--accent-hover); }
 .chat-send svg { width: 16px; height: 16px; }
 
-/* ─── Back link ─────────────────────────────────────────────────────── */
-.back-home { position: fixed; top: 16px; left: 16px; z-index: 40; padding: 8px 14px; border-radius: var(--radius-full); background: rgba(255,255,255,0.06); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); font-size: var(--text-sm); color: var(--fg-2); text-decoration: none; transition: all var(--motion-fast) var(--ease-standard); display: flex; align-items: center; gap: 4px; }
-.back-home:hover { color: var(--fg); background: rgba(255,255,255,0.1); }
 
 /* 窗口控制按钮（融入状态栏） */
 .window-ctrl-btn-mini {
@@ -472,6 +469,7 @@ body {
 .toggle-group label { margin-bottom: 0 !important; }
 .settings-toggle { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
 .restart-hint { font-size: 10px; color: var(--warning); font-weight: 400; }
+.live-hint { font-size: 10px; color: var(--success); font-weight: 400; }
 
 .settings-section { margin-bottom: 6px; }
 .settings-section-title { font-size: 13px; font-weight: 500; padding: 10px 0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
@@ -482,11 +480,15 @@ body {
 .save-status { text-align: center; color: var(--success); font-size: 12px; padding: 8px; animation: fadeIn 0.3s var(--ease-standard); }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .settings-loading { color: var(--muted); font-size: 13px; text-align: center; padding: 40px 0; }
+.settings-error { color: var(--danger); font-size: 13px; text-align: center; padding: 20px 0; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.settings-error .btn-sm { padding: 6px 16px; background: var(--danger); color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
+.settings-error .btn-sm:hover { opacity: 0.85; }
+.settings-reset-row { text-align: center; padding: 16px 0 8px; border-top: 1px solid var(--border); margin-top: 12px; }
 
 /* ─── 成员面板 ──────────────────────────────────────────────────────── */
 .panel-stats { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); padding: 0 0 12px; }
 .panel-section-title { font-size: 12px; text-transform: uppercase; color: var(--muted); padding: 12px 0 4px; letter-spacing: 1px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
-.empty-state { text-align: center; color: var(--muted); font-size: 12px; padding: 20px 0; }
+.empty-state { text-align: center; color: var(--muted); font-size: 12px; padding: 20px 0; white-space: pre-line; line-height: 1.6; }
 .member-list { list-style: none; padding: 0; margin: 0; }
 .member-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--border-soft); }
 .member-item:hover { background: var(--border-soft); }
@@ -503,6 +505,8 @@ body {
 .btn-sm { font-size: 11px; padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--fg-2); cursor: pointer; transition: all var(--motion-fast); }
 .btn-sm:hover { border-color: var(--accent); color: var(--fg); }
 .btn-sm.primary { background: var(--accent); color: var(--accent-on); border-color: var(--accent); }
+.btn-danger-outline { border-color: var(--danger, #e74c3c); color: var(--danger, #e74c3c); }
+.btn-danger-outline:hover { background: var(--danger, #e74c3c); color: #fff; border-color: var(--danger, #e74c3c); }
 .btn-primary-full { width: 100%; padding: 10px; background: var(--accent); color: var(--accent-on); border: none; border-radius: var(--radius-sm); font-size: 14px; cursor: pointer; transition: opacity var(--motion-fast); }
 .btn-primary-full:hover { opacity: 0.85; }
 
@@ -1003,3 +1007,55 @@ body {
   font-size: 10px; color: var(--muted);
   font-family: var(--font-mono);
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   确认对话框
+   ═══════════════════════════════════════════════════════════════════ */
+.confirm-overlay {
+  position: fixed; inset: 0; z-index: 90;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+}
+.confirm-dialog {
+  width: 340px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex; flex-direction: column; gap: var(--space-4);
+}
+.confirm-dialog-title {
+  font-size: 16px; font-weight: 600; color: var(--fg);
+}
+.confirm-dialog-msg {
+  font-size: 13px; color: var(--fg-2); line-height: 1.5;
+}
+.confirm-dialog-actions {
+  display: flex; justify-content: flex-end; gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   声纹采集弹窗
+   ═══════════════════════════════════════════════════════════════════ */
+.voice-capture-dialog { max-width: 360px; padding: 16px; }
+.voice-capture-guide { text-align: center; color: var(--fg-2); font-size: var(--text-sm); margin-bottom: 4px; }
+.voice-capture-script { text-align: center; font-size: 22px; font-weight: 600; color: var(--accent); margin-bottom: var(--space-3); letter-spacing: 2px; }
+.voice-capture-mic-level { display: flex; align-items: center; gap: 6px; margin-bottom: var(--space-2); padding: 0 4px; }
+.voice-capture-mic-label { font-size: 14px; flex-shrink: 0; }
+.voice-capture-mic-bar-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.voice-capture-mic-bar-fill { height: 100%; background: var(--success); border-radius: 2px; width: 0%; transition: width 0.15s ease; }
+.voice-capture-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3); }
+.voice-capture-countdown { font-size: 28px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+.voice-capture-countdown.recording { animation: pulse-countdown 1s ease-in-out infinite; }
+@keyframes pulse-countdown { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+.voice-capture-waveform { display: flex; align-items: center; justify-content: center; gap: 2px; height: 64px; margin-bottom: var(--space-3); background: var(--surface-glass); border-radius: var(--radius-md); overflow: hidden; }
+.voice-capture-waveform-placeholder { color: var(--muted); font-size: var(--text-sm); }
+.voice-capture-waveform-bar { width: 3px; background: var(--accent); border-radius: 2px; transition: height 0.08s ease; }
+.voice-capture-waveform-bar.recording { animation: waveform-pulse 0.5s ease-in-out infinite alternate; }
+@keyframes waveform-pulse { from { opacity:0.6;} to {opacity:1;} }
+.voice-capture-spectrum { display: flex; align-items: flex-end; justify-content: center; gap: 3px; height: 48px; margin-bottom: var(--space-3); }
+.voice-capture-spectrum-bar { flex: 1; max-width: 6px; background: var(--success); border-radius: 2px 2px 0 0; transition: height 0.3s ease; }
+.voice-capture-status { text-align: center; color: var(--fg-2); font-size: var(--text-sm); margin-bottom: var(--space-3); }
+.voice-capture-actions { display: flex; justify-content: center; gap: var(--space-2); }

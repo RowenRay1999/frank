@@ -134,7 +134,7 @@ class SkillLoader:
 
         # 权限校验：检查当前用户角色是否满足技能要求的最低角色等级
         role = params.get('role', 'guest')
-        role_levels = {'owner': 3, 'adult': 2, 'child': 1, 'guest': 0}
+        role_levels = {'owner': 3, 'admin': 2, 'member': 1, 'guest': 0, 'unregistered': -1}
         if role_levels.get(role, 0) < role_levels.get(min_level, 0):
             return {'error': f'Permission denied: requires min_user_level={min_level}, current role={role}'}
 

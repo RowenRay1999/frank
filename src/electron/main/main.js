@@ -244,6 +244,7 @@ function handleMessage(msg) {
     case 'member.pending':
     case 'member.identified':
     case 'member.deleted':
+    case 'member.cleared':
     case 'member.updated':
     case 'member.stats':
     case 'member.info':
@@ -251,6 +252,11 @@ function handleMessage(msg) {
     case 'member.register_started':
     case 'member.register_info_ok':
     case 'member.register_cancelled':
+    case 'member.resample_voice_ack':
+    case 'member.voice_resampled':
+    case 'member.capture_voice_ack':
+    case 'member.voice_captured':
+    case 'member.voice_capture_timeout':
       if (mainWindow) mainWindow.webContents.send(msg.type, msg.payload);
       break;
     // Phase 2: Role / Settings events
@@ -258,7 +264,14 @@ function handleMessage(msg) {
     case 'role.info':
     case 'settings.current':
     case 'settings.updated':
+    case 'audio.devices':
+    case 'camera.devices':
       if (mainWindow) mainWindow.webContents.send(msg.type, msg.payload);
+      break;
+    case 'mic.error':
+    case 'camera.error':
+      console.error(`[Frank] Pipeline error: [${msg.payload.code}] ${msg.payload.message}`);
+      if (mainWindow) mainWindow.webContents.send('error', msg.payload);
       break;
     case 'error':
       console.error(`[Frank] Error from Python: [${msg.payload.code}] ${msg.payload.message}`);
@@ -269,6 +282,7 @@ function handleMessage(msg) {
     case 'chat.user_message':
     case 'chat.assistant_message':
     case 'chat.listening':
+    case 'chat.text_ack':
       if (mainWindow) mainWindow.webContents.send(msg.type, msg.payload);
       break;
     // Phase 3: STT / LLM / TTS events

@@ -60,6 +60,7 @@ class CameraPipeline:
         self._init_task: asyncio.Task | None = None
         self._no_face_frames = 0  # WR-06: debounce face_lost
         self._last_error_time: dict[str, float] = {}  # WR-07: error debounce
+        self._last_embedding_emit_time = 0.0  # WR-09: throttle embedding submissions
 
         # 回调
         self._on_face_detected: Callable | None = None
@@ -135,7 +136,7 @@ class CameraPipeline:
             _, jpeg = cv2.imencode('.jpg', face_resized, [cv2.IMWRITE_JPEG_QUALITY, 85])
             return jpeg.tobytes()
         except Exception as e:
-            logger.debug(f'Face thumbnail capture error: {e}')
+            logger.warning(f'Face thumbnail capture error: {e}')
             return None
 
     @property
@@ -167,6 +168,15 @@ class CameraPipeline:
             logger.warning(f'InsightFace init failed, falling back to MediaPipe only: {e}')
             self._insightface_ready = False
             self._insightface_model = None
+            # WR-09: 延迟重试，应对模型文件尚未下载完成等临时故障
+            asyncio.create_task(self._retry_insightface(15.0))
+
+    async def _retry_insightface(self, delay: float = 15.0):
+        """InsightFace 初始化失败后延迟重试"""
+        await asyncio.sleep(delay)
+        if not self._insightface_ready and self._running:
+            logger.info('Retrying InsightFace initialization...')
+            await self._init_insightface()
 
     # ─── 设备枚举 ───────────────────────────────────────
 
@@ -197,8 +207,15 @@ class CameraPipeline:
             self.width = params.get('width', self.width)
             self.height = params.get('height', self.height)
 
-        # 打开摄像头
-        self._cap = cv2.VideoCapture(self.device_id, cv2.CAP_DSHOW)
+        # 打开摄像头（规范化 device_id: OpenCV 需要 int）
+        cam_id = self.device_id
+        if isinstance(cam_id, str):
+            try:
+                cam_id = int(cam_id)
+            except ValueError:
+                logger.warning(f'Camera device_id="{cam_id}" is not an integer, falling back to 0')
+                cam_id = 0
+        self._cap = cv2.VideoCapture(cam_id, cv2.CAP_DSHOW)
         if not self._cap.isOpened():
             await self._emit_error('CAM_NOT_FOUND',
                 f'无法打开摄像头 (device_id={self.device_id})，请确认摄像头已连接并启用',
@@ -315,6 +332,10 @@ class CameraPipeline:
                 elif self._face_detector:
                     faces = self._detect_with_mediapipe(frame_rgb)
 
+                # 每帧更新 bbox（供身份确认/发现时截图使用）
+                if faces and 'bbox' in faces[0]:
+                    self._last_face_bbox = faces[0]['bbox']
+
                 # 人脸数变化事件
                 current_count = len(faces)
                 if current_count > 0 and self._faces_last_frame == 0:
@@ -326,6 +347,23 @@ class CameraPipeline:
                         self._no_face_frames = 0
                 elif current_count > 0:
                     self._no_face_frames = 0
+                    # WR-09: 持续提交 embedding（而非仅在 0→N 事件提交）
+                    # 解决 InsightFace 异步加载竞态：加载完成前 faces 已 > 0，
+                    # _emit_face_detected 已错过，需要在此持续提交
+                    if self._on_face_embedding and self._insightface_ready:
+                        now = time.time()
+                        if now - self._last_embedding_emit_time >= 0.5:  # 限频：500ms
+                            self._last_embedding_emit_time = now
+                            for face in faces:
+                                if 'embedding' in face:
+                                    try:
+                                        emb = np.array(face['embedding'], dtype=np.float32)
+                                        if asyncio.iscoroutinefunction(self._on_face_embedding):
+                                            await self._on_face_embedding(emb, face['confidence'])
+                                        else:
+                                            self._on_face_embedding(emb, face['confidence'])
+                                    except Exception as e:
+                                        logger.debug(f'Embedding submit error: {e}')
 
                 self._faces_last_frame = current_count
 

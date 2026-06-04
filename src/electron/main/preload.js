@@ -132,6 +132,30 @@ contextBridge.exposeInMainWorld('frankAPI', {
     return () => ipcRenderer.removeListener('member.deleted', handler);
   },
 
+  onMemberCleared: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('member.cleared', handler);
+    return () => ipcRenderer.removeListener('member.cleared', handler);
+  },
+
+  onVoiceResampled: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('member.voice_resampled', handler);
+    return () => ipcRenderer.removeListener('member.voice_resampled', handler);
+  },
+
+  onVoiceCaptured: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('member.voice_captured', handler);
+    return () => ipcRenderer.removeListener('member.voice_captured', handler);
+  },
+
+  onVoiceCaptureTimeout: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('member.voice_capture_timeout', handler);
+    return () => ipcRenderer.removeListener('member.voice_capture_timeout', handler);
+  },
+
   // ── Phase 3: Chat events ──
   onChatSubState: (callback) => {
     const handler = (_event, data) => callback(data);
@@ -219,6 +243,19 @@ contextBridge.exposeInMainWorld('frankAPI', {
     const handler = (_event, data) => callback(data);
     ipcRenderer.on('settings.updated', handler);
     return () => ipcRenderer.removeListener('settings.updated', handler);
+  },
+
+  // ── 设备枚举事件 ──
+  onAudioDevices: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('audio.devices', handler);
+    return () => ipcRenderer.removeListener('audio.devices', handler);
+  },
+
+  onCameraDevices: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('camera.devices', handler);
+    return () => ipcRenderer.removeListener('camera.devices', handler);
   },
 
   // ── 预览窗口 ──

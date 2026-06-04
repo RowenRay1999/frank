@@ -117,12 +117,21 @@ function parseValue(str) {
 function getDefaultConfig() {
   return {
     camera: { device_id: 0, width: 640, height: 480, fps_idle: 1, fps_aware: 5, fps_active: 10, detection_confidence: 0.7 },
-    microphone: { device_id: null, sample_rate: 16000, chunk_size: 512, channels: 1 },
-    wake_word: { text: 'Hey Frank', confidence_threshold: 0.7, face_cooldown_ms: 1000 },
+    microphone: { device_id: null, sample_rate: 16000, chunk_size: 512, channels: 1, bits_per_sample: 16, ring_buffer_seconds: 10, pre_trigger_seconds: 1.5, silence_threshold_ms: 800 },
+    wake_word: { text: 'Hey Frank', model: 'openwakeword', confidence_threshold: 0.7, face_cooldown_ms: 1000 },
     websocket: { host: 'localhost', port: 8765, port_max_retries: 15, heartbeat_interval: 5, heartbeat_missed_max: 3, reconnect_backoff: [1, 2, 4, 8, 16, 30] },
     state_machine: { timeout_aware_to_idle: 30, timeout_auth_delay: 2, timeout_chat_to_auth: 300, timeout_auth_to_idle: 60 },
-    logging: { level: 'INFO', file: 'logs/frank.log', max_size_mb: 10, backup_count: 3 },
+    logging: { level: 'INFO', file: 'logs/frank.log', max_size_mb: 10, backup_count: 3, format: '%(asctime)s [%(levelname)s] %(name)s: %(message)s' },
     app: { auto_start: true, minimize_to_tray: true, always_on_top: false, language: 'zh-CN' },
+    llm: { provider: 'openai', model: 'gpt-4o-mini', base_url: null, api_key_env: 'FRANK_LLM_API_KEY', timeout: 15, max_tokens: 1024, temperature: 0.7, max_history_rounds: 10 },
+    tts: { voice: 'zh-CN-YunxiNeural', speed: 1.0, retry_count: 2, volume: 0.8 },
+    wakefree: { enabled: true, face_required: true, face_window_seconds: 2 },
+    visual_intent: { enabled: true, gaze_threshold: 10.0, gaze_duration: 2.0, nod_threshold: 0.015, shake_threshold: 0.015 },
+    multi_output: { secondary_audio_device_id: null, secondary_display_id: null },
+    tasks: { max_retries: 3, retry_backoff_base: 2, history_retention_hours: 24 },
+    pose: { enabled: true, min_detection_confidence: 0.5, min_tracking_confidence: 0.5, model_complexity: 1 },
+    gesture: { enabled: true, dtw_threshold: 0.65, debounce_seconds: 3, window_frames: 30 },
+    privacy: { auto_clean: true, clean_days: 30, notify_days: 3 },
   };
 }
 

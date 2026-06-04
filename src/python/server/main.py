@@ -28,7 +28,7 @@ from websockets.asyncio.server import serve
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.python.shared.config import get_config, update_config
+from src.python.shared.config import get_config, update_config, reset_config
 from src.python.shared.message import Message, ErrorMessage
 from src.python.shared.database import init_database
 from src.python.modules.state.state_machine import StateMachine
@@ -89,6 +89,24 @@ notifier: ExternalNotifier | None = None
 connected_clients: set = set()
 _preview_active = False
 _preview_client = None  # 当前请求预览的 websocket 连接
+_pending_voice_resample: set[str] = set()  # 待重新声音采样的 member_id 集合
+_voice_capture_timeouts: dict[str, asyncio.Task] = {}  # 声纹采集超时任务
+
+
+async def _voice_capture_timeout_task(member_id: str):
+    """声纹采集超时：15 秒后未捕获则通知前端"""
+    await asyncio.sleep(15.0)
+    if audio_pipeline and audio_pipeline._pending_voice_capture:
+        audio_pipeline._pending_voice_capture = None
+        logger.info(f'Voice capture timeout for member {member_id[:8]}...')
+        await broadcast_event('member.voice_capture_timeout', {'member_id': member_id})
+
+
+def _cancel_voice_capture_timeout(member_id: str):
+    """取消声纹采集超时任务"""
+    task = _voice_capture_timeouts.pop(member_id, None)
+    if task and not task.done():
+        task.cancel()
 
 
 # ─── 消息处理 ───────────────────────────────────────────────
@@ -200,6 +218,43 @@ async def handle_message(websocket, raw_msg: str):
                 else:
                     await send_error(websocket, 'MIC_NOT_INIT', '麦克风模块未初始化', True, '', msg_id)
 
+            case 'audio.devices':
+                # 返回 PyAudio 枚举的音频输入设备列表（整数索引）
+                devices = []
+                try:
+                    import pyaudio
+                    pa = pyaudio.PyAudio()
+                    for i in range(pa.get_device_count()):
+                        info = pa.get_device_info_by_index(i)
+                        if info.get('maxInputChannels', 0) > 0:
+                            devices.append({
+                                'index': i,
+                                'name': info.get('name', f'设备 {i}'),
+                                'channels': info.get('maxInputChannels', 1),
+                                'sample_rate': int(info.get('defaultSampleRate', 16000)),
+                            })
+                    pa.terminate()
+                except Exception as e:
+                    logger.warning(f'Failed to enumerate audio devices: {e}')
+                await send_message(websocket, 'audio.devices', {'devices': devices}, msg_id)
+
+            case 'camera.devices':
+                # 探测 OpenCV 可用的摄像头索引 (0-4)
+                devices = []
+                try:
+                    import cv2
+                    for i in range(5):
+                        cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)
+                        if cap.isOpened():
+                            devices.append({
+                                'index': i,
+                                'name': f'摄像头 {i}',
+                            })
+                            cap.release()
+                except Exception as e:
+                    logger.warning(f'Failed to enumerate camera devices: {e}')
+                await send_message(websocket, 'camera.devices', {'devices': devices}, msg_id)
+
             # ── 成员管理 (Phase 2) ──
             case 'member.list':
                 members = member_manager.list_members() if member_manager else []
@@ -246,6 +301,17 @@ async def handle_message(websocket, raw_msg: str):
                 if member_manager and payload.get('member_id'):
                     member_manager.remove_member(payload['member_id'])
                     await send_message(websocket, 'member.deleted', {}, msg_id)
+                else:
+                    await send_error(websocket, 'MEM_NOT_INIT', '成员模块未初始化', True, '', msg_id)
+
+            case 'member.clear':
+                if member_manager:
+                    try:
+                        result = member_manager.clear_all_records()
+                        await send_message(websocket, 'member.cleared', result, msg_id)
+                    except Exception as e:
+                        logger.error(f'member.clear failed: {e}')
+                        await send_error(websocket, 'CLEAR_FAILED', str(e), True, '', msg_id)
                 else:
                     await send_error(websocket, 'MEM_NOT_INIT', '成员模块未初始化', True, '', msg_id)
 
@@ -299,6 +365,27 @@ async def handle_message(websocket, raw_msg: str):
                     logger.error(f'member.history failed: {e}')
                     await send_error(websocket, 'HISTORY_FAILED', str(e), True, '', msg_id)
 
+            case 'member.resample_voice':
+                if not member_manager or not payload.get('member_id'):
+                    await send_error(websocket, 'BAD_REQUEST', '缺少 member_id', True, '', msg_id)
+                    return
+                mid = payload['member_id']
+                _pending_voice_resample.add(mid)
+                logger.info(f'Voice resample requested for member {mid[:8]}...')
+                await send_message(websocket, 'member.resample_voice_ack', {'member_id': mid}, msg_id)
+
+            case 'member.capture_voice':
+                if not audio_pipeline or not payload.get('member_id'):
+                    await send_error(websocket, 'BAD_REQUEST', '缺少 member_id 或音频模块未初始化', True, '', msg_id)
+                    return
+                mid = payload['member_id']
+                audio_pipeline.request_voice_capture(mid)
+                logger.info(f'Voice capture started for member {mid[:8]}...')
+                await send_message(websocket, 'member.capture_voice_ack', {'member_id': mid}, msg_id)
+                # 设置超时：15 秒后若无采集结果则通知前端
+                _cancel_voice_capture_timeout(mid)
+                _voice_capture_timeouts[mid] = asyncio.create_task(_voice_capture_timeout_task(mid))
+
             # ── 身份查询 (Phase 2) ──
             case 'identity.get':
                 identity = fusion_engine.get_current_identity() if fusion_engine else {}
@@ -334,12 +421,50 @@ async def handle_message(websocket, raw_msg: str):
                 if not partial:
                     await send_error(websocket, 'EMPTY_UPDATE', '更新内容不能为空', True, '', msg_id)
                 else:
-                    try:
-                        updated = update_config(partial)
-                        safe = _sanitize_config(updated)
-                        await send_message(websocket, 'settings.updated', safe, msg_id)
-                    except Exception as e:
-                        await send_error(websocket, 'CONFIG_WRITE_FAILED', str(e), True, '请检查配置文件权限', msg_id)
+                    # 值校验
+                    err = _validate_config_update(partial)
+                    if err:
+                        await send_error(websocket, 'VALIDATION_FAILED', err, True, '请检查输入值范围', msg_id)
+                    else:
+                        try:
+                            updated = update_config(partial)
+                            safe = _sanitize_config(updated)
+                            await send_message(websocket, 'settings.updated', safe, msg_id)
+
+                            # 设备热切换：检测 camera/microphone device_id 变更并动态重配置
+                            new_cam_id = partial.get('camera', {}).get('device_id')
+                            new_mic_id = partial.get('microphone', {}).get('device_id')
+
+                            if new_cam_id is not None and camera_pipeline:
+                                try:
+                                    await camera_pipeline.configure({'device_id': new_cam_id})
+                                    logger.info(f'Camera hot-switched to device_id={new_cam_id}')
+                                except Exception as e:
+                                    logger.error(f'Camera hot-switch failed: {e}')
+                                    await send_error(websocket, 'CAM_SWITCH_FAILED',
+                                        f'摄像头切换到 device_id={new_cam_id} 失败: {e}', True,
+                                        '请确认设备可用后重试，或重启服务', msg_id)
+
+                            if new_mic_id is not None and audio_pipeline:
+                                try:
+                                    await audio_pipeline.configure({'device_id': new_mic_id})
+                                    logger.info(f'Microphone hot-switched to device_id={new_mic_id}')
+                                except Exception as e:
+                                    logger.error(f'Microphone hot-switch failed: {e}')
+                                    await send_error(websocket, 'MIC_SWITCH_FAILED',
+                                        f'麦克风切换到 device_id={new_mic_id} 失败: {e}', True,
+                                        '请确认设备可用后重试，或重启服务', msg_id)
+
+                        except Exception as e:
+                            await send_error(websocket, 'CONFIG_WRITE_FAILED', str(e), True, '请检查配置文件权限', msg_id)
+
+            case 'settings.reset':
+                try:
+                    cfg = reset_config()
+                    safe = _sanitize_config(cfg)
+                    await send_message(websocket, 'settings.current', safe, msg_id)
+                except Exception as e:
+                    await send_error(websocket, 'CONFIG_RESET_FAILED', str(e), True, '请检查配置文件权限', msg_id)
 
             # ── Phase 4: 任务管理 ──
             case 'task.list':
@@ -458,13 +583,21 @@ async def handle_message(websocket, raw_msg: str):
                 else:
                     await send_error(websocket, 'MIC_NOT_INIT', '麦克风模块未初始化', True, '', msg_id)
 
+            # ── 文字对话 ──
+            case 'chat.text':
+                if conversation:
+                    await conversation.handle_text_input(payload.get('text', ''))
+                    await send_message(websocket, 'chat.text_ack', {}, msg_id)
+                else:
+                    await send_error(websocket, 'CONV_NOT_INIT', '对话模块未初始化', True, '', msg_id)
+
             # ── 心跳 ──
             case 'ping':
                 await send_message(websocket, 'pong', {}, msg_id)
 
             # ── 未知 ──
             case _:
-                await send_error(websocket, 'UNKNOWN_TYPE', f'未知消息类型: {msg_type}', True, f'支持的类型: state.*, camera.*, mic.*, ping', msg_id)
+                await send_error(websocket, 'UNKNOWN_TYPE', f'未知消息类型: {msg_type}', True, f'支持的类型: state.*, camera.*, mic.*, member.*, chat.*, ping', msg_id)
 
     except Exception as e:
         logger.exception(f'Error handling message {msg_type}')
@@ -565,45 +698,113 @@ async def on_face_embedding(embedding: np.ndarray, confidence: float):
         fusion_engine.submit_face_evidence(embedding, confidence)
 
 
-async def on_voiceprint(embedding: np.ndarray, duration: float):
-    """Phase 2: 声纹 embedding → 融合引擎 + 频谱存储"""
+async def on_voiceprint(payload: dict):
+    """Phase 2: 声纹 embedding → 融合引擎 + 频谱存储
+    payload may contain: embedding (ndarray), duration (float), is_capture (bool), capture_member_id (str)
+    """
+    global _pending_voice_resample
+    embedding = payload.get('embedding') if isinstance(payload, dict) else None
+    if embedding is None:
+        # Legacy call signature: (embedding, duration)
+        return
+    duration = payload.get('duration', 0)
+    is_capture = payload.get('is_capture', False)
+    capture_member_id = payload.get('capture_member_id')
+
     if fusion_engine:
-        fusion_engine.submit_voice_evidence(embedding, 1.0)
+        emb_np = np.array(embedding, dtype=np.float32)
+        fusion_engine.submit_voice_evidence(emb_np, 1.0)
         current = fusion_engine.get_current_identity()
-        if current and current.get('member_id') and len(embedding) >= 192:
+        member_id = current.get('member_id') if current else None
+        is_pending_resample = member_id in _pending_voice_resample if member_id else False
+        effective_member_id = capture_member_id or member_id
+        if effective_member_id and len(embedding) >= 192:
             try:
                 spectrum_48 = []
                 for i in range(48):
                     start = i * 4
                     end = min(start + 4, 192)
-                    segment = embedding[start:end]
+                    segment = emb_np[start:end]
                     rms = float(np.sqrt(np.mean(segment ** 2)))
                     spectrum_48.append(rms)
                 max_rms = max(spectrum_48) if max(spectrum_48) > 0 else 1.0
                 spectrum_48 = [s / max_rms for s in spectrum_48]
-                member_manager.update_voiceprint_spectrum(current['member_id'], spectrum_48)
+                member_manager.update_voiceprint_spectrum(effective_member_id, spectrum_48)
+                # 手动声纹采集：更新 embedding + 发送完成事件
+                if is_capture or is_pending_resample:
+                    member_manager.update_voice_embedding(effective_member_id, np.array(embedding, dtype=np.float32))
+                    _pending_voice_resample.discard(effective_member_id)
+                    _cancel_voice_capture_timeout(effective_member_id)
+                    logger.info(f'Voice capture completed for member {effective_member_id[:8]}...')
+                    await broadcast_event('member.voice_captured', {
+                        'member_id': effective_member_id,
+                        'spectrum': spectrum_48,
+                        'duration': duration,
+                    })
+                # 正常自动采样仅更新频谱（不含 embedding）
+                elif member_id and not is_capture:
+                    pass  # 频谱已在上面更新
             except Exception as e:
-                logger.debug(f'Voiceprint spectrum save error: {e}')
+                logger.debug(f'Voiceprint processing error: {e}')
+
+
+def _save_face_thumbnail(person_id: str, *, is_member: bool = True):
+    """截取人脸缩略图并保存到 data/faces/，更新数据库路径
+    Args:
+        person_id: 成员 ID 或未标识人物 ID
+        is_member: True=已标识成员, False=未标识访客
+    """
+    # 已有缩略图则不再覆盖（WR-10: 避免频繁写盘）
+    if is_member and member_manager:
+        try:
+            existing = member_manager.get_member_info(person_id)
+            if existing and existing.get('face_thumbnail'):
+                logger.debug(f'Face thumbnail already exists for member {person_id[:8]}..., skipping')
+                return
+        except Exception:
+            pass
+    elif not is_member and member_manager:
+        pending = member_manager.list_pending()
+        unid = next((p for p in pending if p['id'] == person_id), None)
+        if unid and unid.get('face_thumbnail'):
+            logger.debug(f'Face thumbnail already exists for unidentified {person_id[:8]}..., skipping')
+            return
+
+    if not camera_pipeline:
+        logger.debug('Face thumbnail skipped: camera_pipeline not initialized')
+        return
+    if not camera_pipeline._last_face_bbox:
+        logger.debug('Face thumbnail skipped: no face bbox available')
+        return
+    if not member_manager:
+        logger.debug('Face thumbnail skipped: member_manager not initialized')
+        return
+    try:
+        jpeg_bytes = camera_pipeline.capture_face_thumbnail(camera_pipeline._last_face_bbox)
+        if not jpeg_bytes:
+            logger.debug(f'Face thumbnail capture returned no data for {person_id[:8]}... (last_frame={camera_pipeline._last_frame is not None})')
+            return
+        faces_dir = PROJECT_ROOT / 'data' / 'faces'
+        faces_dir.mkdir(parents=True, exist_ok=True)
+        prefix = 'mem' if is_member else 'unid'
+        filename = f"{prefix}_{person_id}_{int(time.time())}.jpg"
+        filepath = faces_dir / filename
+        filepath.write_bytes(jpeg_bytes)
+        if is_member:
+            member_manager.update_face_thumbnail(person_id, str(filepath.absolute()))
+        else:
+            member_manager.update_unidentified_thumbnail(person_id, str(filepath.absolute()))
+        logger.info(f'Face thumbnail saved: {filepath.name} ({len(jpeg_bytes)} bytes) for {person_id[:8]}...')
+    except Exception as e:
+        logger.warning(f'Face thumbnail save error ({person_id[:8]}...): {e}')
 
 
 async def on_identity_confirmed(identity: dict):
     """融合引擎确认身份 → 截图保存 + 状态机 + 角色管理"""
     logger.info(f'Identity confirmed: {identity.get("display_name")} (role={identity.get("role")})')
 
-    # 保存人脸截图
-    if camera_pipeline and camera_pipeline._last_face_bbox and identity.get('member_id'):
-        try:
-            jpeg_bytes = camera_pipeline.capture_face_thumbnail(camera_pipeline._last_face_bbox)
-            if jpeg_bytes:
-                faces_dir = PROJECT_ROOT / 'data' / 'faces'
-                faces_dir.mkdir(parents=True, exist_ok=True)
-                filename = f"{identity['member_id']}_{int(time.time())}.jpg"
-                filepath = faces_dir / filename
-                filepath.write_bytes(jpeg_bytes)
-                # 存储绝对路径，前端转为 file:// URL 即可加载
-                member_manager.update_face_thumbnail(identity['member_id'], str(filepath.absolute()))
-        except Exception as e:
-            logger.debug(f'Face thumbnail save error: {e}')
+    if identity.get('member_id'):
+        _save_face_thumbnail(identity['member_id'], is_member=True)
 
     if state_machine:
         state_machine.set_identity(identity)
@@ -622,6 +823,10 @@ async def on_identity_changing(change_info: dict):
 
 
 async def on_identity_unknown(info: dict):
+    # 自动发现未标识访客时截取人脸缩略图
+    auto_discovered = info.get('auto_discovered')
+    if auto_discovered and auto_discovered.get('person_id'):
+        _save_face_thumbnail(auto_discovered['person_id'], is_member=False)
     await broadcast_event('identity.unknown', info)
 
 
@@ -706,7 +911,53 @@ async def on_gesture_detected(event: GestureEvent):
     logger.debug(f'Gesture detected: {event.gesture_type} (confidence={event.confidence:.2f})')
 
 
-# ─── 主函数 ─────────────────────────────────────────────────
+# ─── 配置校验 ─────────────────────────────────────────────────
+def _validate_config_update(partial: dict) -> str | None:
+    """校验配置更新值，返回错误描述或 None。
+    递归展开 nested dict 并检查每个叶子值。
+    """
+    # 定义校验规则: 路径前缀 -> (类型, min, max) 或 None=不做范围检查
+    RULES = {
+        'llm.temperature': (float, 0.0, 2.0),
+        'llm.max_tokens': (int, 1, 131072),
+        'camera.detection_confidence': (float, 0.0, 1.0),
+        'camera.fps_idle': (int, 0, 30),
+        'camera.fps_aware': (int, 1, 60),
+        'camera.fps_active': (int, 1, 60),
+        'wake_word.confidence_threshold': (float, 0.0, 1.0),
+        'tts.speed': (float, 0.5, 3.0),
+        'tts.volume': (float, 0.0, 1.0),
+        'gesture.dtw_threshold': (float, 0.0, 1.0),
+        'gesture.debounce_seconds': (int, 1, 30),
+        'wakefree.face_window_seconds': (int, 1, 30),
+        'tasks.max_retries': (int, 0, 20),
+        'tasks.history_retention_hours': (int, 1, 720),
+    }
+
+    def _flatten(d: dict, prefix: str = '') -> dict[str, object]:
+        r = {}
+        for k, v in d.items():
+            key = f'{prefix}.{k}' if prefix else k
+            if isinstance(v, dict):
+                r.update(_flatten(v, key))
+            else:
+                r[key] = v
+        return r
+
+    for key, value in _flatten(partial).items():
+        if key in RULES:
+            expected_type, vmin, vmax = RULES[key]
+            if not isinstance(value, expected_type):
+                try:
+                    value = expected_type(value)
+                except (ValueError, TypeError):
+                    return f'字段 {key} 类型错误：期望 {expected_type.__name__}，实际 {type(value).__name__}'
+            if value < vmin or value > vmax:
+                return f'字段 {key} 值 {value} 超出范围 [{vmin}, {vmax}]'
+    return None
+
+
+# ─── 配置脱敏 ─────────────────────────────────────────────────
 def _sanitize_config(cfg: dict) -> dict:
     """脱敏配置中的敏感字段（如 API key）"""
     import copy

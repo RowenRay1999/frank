@@ -9,11 +9,6 @@
 </head>
 <body>
 
-  <!-- 返回首页 -->
-  <a href="index.html" class="back-home">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M15 18l-6-6 6-6"></path></svg>
-  </a>
-
   <div class="main-stage">
 
     <!-- ═══════════════════════════════════════════════════════════════
@@ -131,11 +126,16 @@
         </div>
         <div class="panel-slide-body" id="settingsContent">
           <div class="settings-loading" id="settingsLoading">加载配置中...</div>
+          <div id="settingsError" class="settings-error hidden">
+            <span id="settingsErrorText">配置加载失败</span>
+            <button id="btnSettingsRetry" class="btn-sm">重试</button>
+          </div>
           <div id="settingsForm" class="hidden">
             <div class="settings-section">
               <h4 class="settings-section-title" data-section="llm">🤖 大模型 (LLM) <span class="collapse-icon">▾</span></h4>
               <div class="settings-group" id="section-llm">
-                <div class="form-group"><label>API 地址</label><input type="text" data-key="llm.api_base" class="settings-input" placeholder="https://api.openai.com/v1"></div>
+                <div class="form-group"><label>AI 后端 <span class="restart-hint">重启后生效</span></label><select data-key="llm.provider" class="settings-select"><option value="openai">OpenAI / Azure OpenAI</option><option value="ollama">Ollama (本地)</option></select></div>
+                <div class="form-group"><label>API 地址</label><input type="text" data-key="llm.base_url" class="settings-input" placeholder="https://api.openai.com/v1"></div>
                 <div class="form-group"><label>模型名称</label><input type="text" data-key="llm.model" class="settings-input" placeholder="gpt-4o"></div>
                 <div class="form-group"><label>温度 <span class="slider-value" data-for="llm.temperature">0.7</span></label><input type="range" data-key="llm.temperature" class="settings-slider" min="0" max="2" step="0.1" value="0.7"></div>
                 <div class="form-group"><label>最大 Token 数</label><input type="number" data-key="llm.max_tokens" class="settings-input" min="100" max="4096" value="2048"></div>
@@ -152,14 +152,14 @@
             <div class="settings-section">
               <h4 class="settings-section-title" data-section="audio">🎤 音频设备 <span class="collapse-icon">▾</span></h4>
               <div class="settings-group" id="section-audio">
-                <div class="form-group"><label>麦克风设备 <span class="restart-hint">重启后生效</span></label><select data-key="microphone.device_id" class="settings-select" id="selectMic"></select></div>
+                <div class="form-group"><label>麦克风设备 <span class="live-hint">即时生效</span></label><select data-key="microphone.device_id" class="settings-select" id="selectMic"></select></div>
                 <div class="form-group"><label>唤醒词灵敏度 <span class="slider-value" data-for="wake_word.confidence_threshold">0.7</span></label><input type="range" data-key="wake_word.confidence_threshold" class="settings-slider" min="0.3" max="0.95" step="0.05" value="0.7"></div>
               </div>
             </div>
             <div class="settings-section">
               <h4 class="settings-section-title" data-section="camera">📷 摄像头设备 <span class="collapse-icon">▾</span></h4>
               <div class="settings-group" id="section-camera">
-                <div class="form-group"><label>摄像头设备 <span class="restart-hint">重启后生效</span></label><select data-key="camera.device_id" class="settings-select" id="selectCam"></select></div>
+                <div class="form-group"><label>摄像头设备 <span class="live-hint">即时生效</span></label><select data-key="camera.device_id" class="settings-select" id="selectCam"></select></div>
                 <div class="form-group"><label>人脸检测灵敏度 <span class="slider-value" data-for="camera.detection_confidence">0.7</span></label><input type="range" data-key="camera.detection_confidence" class="settings-slider" min="0.3" max="0.95" step="0.05" value="0.7"></div>
               </div>
             </div>
@@ -171,7 +171,33 @@
                 <div class="form-group"><label>清理前通知（天） <span class="slider-value" data-for="privacy.notify_days">3</span></label><input type="range" data-key="privacy.notify_days" class="settings-slider" min="0" max="7" step="1" value="3"></div>
               </div>
             </div>
+            <div class="settings-section">
+              <h4 class="settings-section-title" data-section="gesture">✋ 手势识别 <span class="collapse-icon">▾</span></h4>
+              <div class="settings-group" id="section-gesture">
+                <div class="form-group toggle-group"><label>启用手势识别</label><input type="checkbox" data-key="gesture.enabled" class="settings-toggle" checked></div>
+                <div class="form-group"><label>DTW 匹配阈值 <span class="slider-value" data-for="gesture.dtw_threshold">0.65</span></label><input type="range" data-key="gesture.dtw_threshold" class="settings-slider" min="0.3" max="0.95" step="0.05" value="0.65"></div>
+                <div class="form-group"><label>防抖秒数 <span class="slider-value" data-for="gesture.debounce_seconds">3</span></label><input type="range" data-key="gesture.debounce_seconds" class="settings-slider" min="1" max="10" step="1" value="3"></div>
+              </div>
+            </div>
+            <div class="settings-section">
+              <h4 class="settings-section-title" data-section="wakefree">🗣️ 唤醒免提 <span class="collapse-icon">▾</span></h4>
+              <div class="settings-group" id="section-wakefree">
+                <div class="form-group toggle-group"><label>启用免提唤醒</label><input type="checkbox" data-key="wakefree.enabled" class="settings-toggle" checked></div>
+                <div class="form-group toggle-group"><label>需要人脸验证</label><input type="checkbox" data-key="wakefree.face_required" class="settings-toggle" checked></div>
+                <div class="form-group"><label>人脸窗口秒数 <span class="slider-value" data-for="wakefree.face_window_seconds">2</span></label><input type="range" data-key="wakefree.face_window_seconds" class="settings-slider" min="1" max="10" step="1" value="2"></div>
+              </div>
+            </div>
+            <div class="settings-section">
+              <h4 class="settings-section-title" data-section="tasks">📋 任务管理 <span class="collapse-icon">▾</span></h4>
+              <div class="settings-group" id="section-tasks">
+                <div class="form-group"><label>最大重试次数 <span class="slider-value" data-for="tasks.max_retries">3</span></label><input type="range" data-key="tasks.max_retries" class="settings-slider" min="1" max="10" step="1" value="3"></div>
+                <div class="form-group"><label>历史保留小时数 <span class="slider-value" data-for="tasks.history_retention_hours">24</span></label><input type="range" data-key="tasks.history_retention_hours" class="settings-slider" min="1" max="168" step="1" value="24"></div>
+              </div>
+            </div>
             <p id="settingsSaveStatus" class="save-status hidden">已保存 ✓</p>
+            <div class="settings-reset-row">
+              <button id="btnResetDefaults" class="btn-sm btn-danger-outline">↺ 恢复默认配置</button>
+            </div>
           </div>
         </div>
       </div>
@@ -183,6 +209,7 @@
           <span class="panel-slide-title">身份识别</span>
           <div style="display:flex;align-items:center;gap:var(--space-2);">
             <button class="btn-sm" id="btnRoleInfo" title="查看角色权限说明">角色说明 ▶</button>
+            <button class="btn-sm btn-danger-outline" id="btnClearRecords" title="清除所有人物记录（含已标识成员、未标识访客、指令历史）">🗑 清除记录</button>
             <button class="panel-slide-close" data-panel="identityPanel">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
             </button>
@@ -438,6 +465,32 @@
       <div class="wizard-footer">
         <button id="identifyCancel" class="btn-sm">取消</button>
         <button id="identifyConfirm" class="btn-sm primary">确认标识</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 声纹采集弹窗 -->
+  <div id="voiceCaptureOverlay" class="wizard-overlay hidden">
+    <div class="wizard voice-capture-dialog">
+      <div class="voice-capture-header">
+        <span id="voiceCaptureTitle">🎤 声纹采集</span>
+        <span id="voiceCaptureCountdown" class="voice-capture-countdown">10s</span>
+      </div>
+      <div class="voice-capture-guide" id="voiceCaptureGuide">请朗读以下文字：</div>
+      <div class="voice-capture-script" id="voiceCaptureScript">你好弗兰克</div>
+      <div class="voice-capture-mic-level" id="voiceCaptureMicLevel">
+        <span class="voice-capture-mic-label">🎙️</span>
+        <div class="voice-capture-mic-bar-track"><div class="voice-capture-mic-bar-fill" id="voiceCaptureMicBar"></div></div>
+      </div>
+      <div id="voiceCaptureWaveform" class="voice-capture-waveform">
+        <span class="voice-capture-waveform-placeholder">等待语音…</span>
+      </div>
+      <div id="voiceCaptureSpectrum" class="voice-capture-spectrum hidden"></div>
+      <div id="voiceCaptureStatus" class="voice-capture-status">请在 10 秒内朗读以上文字</div>
+      <div class="voice-capture-actions">
+        <button id="voiceCaptureCancel" class="btn-sm">取消</button>
+        <button id="voiceCaptureRetry" class="btn-sm hidden">重新采集</button>
+        <button id="voiceCaptureDone" class="btn-sm primary hidden">完成</button>
       </div>
     </div>
   </div>
