@@ -179,17 +179,26 @@ class MemberManager:
         if not self._registration.is_face_done or not self._registration.is_voice_done:
             raise RuntimeError('Not enough samples collected')
 
-        # 计算平均 embedding
-        face_emb = np.mean(self._registration.face_samples, axis=0)
+        # K-Means 聚类选出 K 个代表性 embedding
+        face_samples = np.array(self._registration.face_samples)
+        K = min(5, len(face_samples))  # K = min(5, N)
+        gallery_embeddings = self._cluster_face_samples(face_samples, K)
+
+        # 声纹取平均（声纹变化小于人脸，可以继续平均）
         voice_emb = np.mean(self._registration.voice_samples, axis=0)
 
-        # 注册为成员
+        # 注册为成员（使用图库）
         member_id = add_member(
             display_name=self._registration.display_name,
             role=self._registration.role,
-            face_emb=face_emb,
+            face_emb=gallery_embeddings[0] if gallery_embeddings else None,  # 主 embedding
             voice_emb=voice_emb,
         )
+
+        # 存储完整图库
+        if len(gallery_embeddings) > 1:
+            from src.python.shared.database import update_face_gallery
+            update_face_gallery(member_id, gallery_embeddings)
 
         self._registration.step = RegistrationStep.DONE
 
@@ -199,9 +208,10 @@ class MemberManager:
             'role': self._registration.role,
             'face_samples': len(self._registration.face_samples),
             'voice_samples': len(self._registration.voice_samples),
+            'gallery_size': len(gallery_embeddings),
         }
 
-        logger.info(f'Registration complete: {self._registration.display_name} (role={self._registration.role})')
+        logger.info(f'Registration complete: {self._registration.display_name} (role={self._registration.role}, gallery={len(gallery_embeddings)})')
         self._registration = None
 
         if self._on_registration_update:
@@ -211,6 +221,46 @@ class MemberManager:
                 pass
 
         return result
+
+    @staticmethod
+    def _cluster_face_samples(samples: np.ndarray, K: int) -> list[np.ndarray]:
+        """K-Means 聚类选出代表性人脸 embedding
+
+        Args:
+            samples: (N, 512) 人脸 embedding 数组
+            K: 聚类数
+
+        Returns:
+            K 个聚类中心（L2 归一化后的 numpy 数组列表）
+        """
+        if len(samples) <= K:
+            # 样本太少，全部保留
+            return [s.astype(np.float32) for s in samples]
+
+        from scipy.cluster.vq import kmeans2
+
+        # L2 归一化
+        norms = np.linalg.norm(samples, axis=1, keepdims=True)
+        norms[norms == 0] = 1.0
+        normalized = samples / norms
+
+        try:
+            centroids, labels = kmeans2(normalized.astype(np.float64), K, minit='points', missing='warn')
+            # 检查是否产生了 NaN 中心点（空聚类导致）
+            if np.any(np.isnan(centroids)):
+                logger.warning('K-Means produced NaN centroids (empty clusters), falling back to uniform sampling')
+                raise ValueError('NaN centroids')
+        except Exception:
+            # kmeans 失败时回退到均匀采样
+            indices = np.linspace(0, len(samples) - 1, K, dtype=int)
+            centroids = normalized[indices]
+
+        # 确保每个中心 L2 归一化
+        centroids_norm = np.linalg.norm(centroids, axis=1, keepdims=True)
+        centroids_norm[centroids_norm == 0] = 1.0
+        centroids = centroids / centroids_norm
+
+        return [c.astype(np.float32) for c in centroids]
 
     def cancel_registration(self):
         """取消注册"""

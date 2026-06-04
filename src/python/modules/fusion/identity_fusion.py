@@ -22,6 +22,7 @@ import numpy as np
 
 from src.python.shared.database import (
     search_by_face_embedding,
+    search_by_face_gallery,
     search_by_voice_embedding,
     search_unidentified_by_face,
     add_unidentified,
@@ -29,6 +30,7 @@ from src.python.shared.database import (
     get_next_visitor_name,
     get_member,
     update_member,
+    append_to_face_gallery,
 )
 
 logger = logging.getLogger('frank.fusion')
@@ -79,7 +81,7 @@ class IdentityFusionEngine:
     FACE_DOMINANT_THRESHOLD = 0.85  # 人脸可独立拍板的阈值
     LOW_THRESHOLD = 0.5        # 低置信度阈值
     CONFLICT_DIFF = 0.15       # 两路指向不同人且分差小于此值视为冲突
-    EVIDENCE_MIN_COUNT = 2     # 最少证据累积次数才确认
+    EVIDENCE_MIN_COUNT = 3     # 最少证据累积次数才确认（近期设为 3 以加快确认，原值 5 在 500ms 限频下需 2.5s+）
     TENTATIVE_TIMEOUT = 10.0   # 暂确认超时（秒），过期未确认降级为 unknown
 
     def __init__(self):
@@ -100,6 +102,7 @@ class IdentityFusionEngine:
         self._on_identity_confirmed: Callable | None = None
         self._on_identity_changing: Callable | None = None
         self._on_identity_unknown: Callable | None = None
+        self._on_identity_recognized: Callable | None = None
         self._on_error: Callable | None = None
 
     # ─── 回调设置 ───────────────────────────────────────
@@ -113,6 +116,10 @@ class IdentityFusionEngine:
     def set_on_identity_unknown(self, callback: Callable):
         self._on_identity_unknown = callback
 
+    def set_on_identity_recognized(self, callback: Callable):
+        """人脸识别到 member 时回调（供 PersonTracker 身份槽位绑定）"""
+        self._on_identity_recognized = callback
+
     def set_on_error(self, callback: Callable):
         self._on_error = callback
 
@@ -125,7 +132,7 @@ class IdentityFusionEngine:
 
         self._last_face_embedding = embedding  # 保存原始嵌入供自动发现使用
 
-        matches = search_by_face_embedding(embedding, top_n=1)
+        matches = search_by_face_gallery(embedding, top_n=1)
         ev = ModalityEvidence(
             member_id=matches[0][0]['id'] if matches else None,
             display_name=matches[0][0]['display_name'] if matches else None,
@@ -326,9 +333,34 @@ class IdentityFusionEngine:
                                 if now - self._last_active_update > 60:
                                     update_member(new_state.member_id, last_active_at=datetime.now(timezone.utc).isoformat())
                                     self._last_active_update = now
+                                # 增量追加高质量 embedding 到图库
+                                face_emb = self._last_face_embedding
+                                if face_emb is not None and new_state.face_evidence.score > 0.6:
+                                    append_to_face_gallery(new_state.member_id, face_emb)
+                            # 通知 PersonTracker 身份槽位绑定
+                            if new_state.member_id and self._on_identity_recognized:
+                                try:
+                                    self._on_identity_recognized({
+                                        'member_id': new_state.member_id,
+                                        'display_name': new_state.display_name,
+                                        'confidence': new_state.confidence,
+                                        'face_score': new_state.face_evidence.score,
+                                    })
+                                except Exception as e:
+                                    logger.debug(f'on_identity_recognized error: {e}')
 
                         case IdentityStatus.CONFLICT | IdentityStatus.TENTATIVE:
                             # 暂确认：等待更多证据
+                            if new_state.member_id and self._on_identity_recognized:
+                                try:
+                                    self._on_identity_recognized({
+                                        'member_id': new_state.member_id,
+                                        'display_name': new_state.display_name,
+                                        'confidence': new_state.confidence,
+                                        'face_score': new_state.face_evidence.score,
+                                    })
+                                except Exception as e:
+                                    logger.debug(f'on_identity_recognized error: {e}')
                             if new_state.tentative_since and \
                                time.time() - new_state.tentative_since > self.TENTATIVE_TIMEOUT:
                                 logger.info('Tentative identity timed out, resetting')

@@ -28,7 +28,7 @@ logger = logging.getLogger('frank.database')
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 DEFAULT_DB_PATH = PROJECT_ROOT / 'data' / 'frank.db'
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 # 线程锁（SQLite 单写多读模式）
 _db_lock = threading.Lock()
@@ -45,18 +45,19 @@ def get_db_path() -> Path:
 def get_connection():
     """获取数据库连接（上下文管理器，自动提交/关闭）"""
     db_path = get_db_path()
-    conn = sqlite3.connect(str(db_path), check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA foreign_keys=ON")
-    try:
-        yield conn
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+    with _db_lock:
+        conn = sqlite3.connect(str(db_path), check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA foreign_keys=ON")
+        try:
+            yield conn
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
 
 
 def init_database():
@@ -250,6 +251,35 @@ def init_database():
             except Exception as e:
                 logger.warning(f'Schema v4 migration partially failed: {e}')
 
+        if current_version < 5:
+            logger.info('Running schema migration to version 5 (face_gallery)...')
+            # members 表新增 face_gallery 列
+            try:
+                conn.execute("ALTER TABLE members ADD COLUMN face_gallery TEXT")
+            except Exception:
+                pass  # 列可能已存在
+            # unidentified 表也新增 face_gallery
+            try:
+                conn.execute("ALTER TABLE unidentified ADD COLUMN face_gallery TEXT")
+            except Exception:
+                pass
+            # person_tracks 表（离线分析和调试）
+            try:
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS person_tracks (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        session_id TEXT NOT NULL,
+                        track_id INTEGER NOT NULL,
+                        track_start REAL NOT NULL,
+                        track_end REAL,
+                        bound_member_id TEXT,
+                        max_appearance_count INTEGER DEFAULT 0,
+                        avg_face_score REAL DEFAULT 0.0
+                    )
+                """)
+            except Exception:
+                pass
+
         if current_version < SCHEMA_VERSION:
             conn.execute(
                 "INSERT OR REPLACE INTO schema_version (version) VALUES (?)",
@@ -312,6 +342,147 @@ def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
     if a is None or b is None:
         return 0.0
     return float(np.dot(a, b))
+
+
+# ─── 图库序列化 ─────────────────────────────────────────────
+
+def serialize_gallery(embeddings: list) -> str | None:
+    """人脸图库列表 → JSON 字符串（base64 编码每个 embedding）"""
+    import base64
+    import json
+    if not embeddings:
+        return None
+    encoded = []
+    for emb in embeddings:
+        if emb is None:
+            continue
+        # L2 归一化
+        norm = np.linalg.norm(emb)
+        if norm > 0:
+            emb = emb / norm
+        b64 = base64.b64encode(emb.astype(np.float32).tobytes()).decode('ascii')
+        encoded.append(b64)
+    return json.dumps(encoded) if encoded else None
+
+
+def deserialize_gallery(gallery_json: str, dim: int = 512) -> list:
+    """JSON 字符串 → 人脸图库列表"""
+    import base64
+    import json
+    if not gallery_json:
+        return []
+    try:
+        encoded = json.loads(gallery_json)
+    except (json.JSONDecodeError, TypeError):
+        return []
+    embeddings = []
+    for b64 in encoded:
+        try:
+            data = base64.b64decode(b64)
+            emb = np.frombuffer(data, dtype=np.float32)
+            if len(emb) == dim:
+                embeddings.append(emb)
+            else:
+                logger.warning(f'Gallery embedding dim mismatch: expected {dim}, got {len(emb)}')
+        except Exception as e:
+            logger.warning(f'Gallery deserialize error: {e}')
+    return embeddings
+
+
+def search_by_face_gallery(query_emb: np.ndarray, top_n: int = 3,
+                           threshold: float = 0.5) -> list[tuple[dict, float]]:
+    """max-pooling 图库匹配：对每个 member 的所有 gallery embedding 取最高相似度"""
+    if query_emb is None:
+        return []
+
+    query_emb = query_emb / (np.linalg.norm(query_emb) or 1.0)
+
+    with get_connection() as conn:
+        rows = conn.execute(
+            "SELECT * FROM members WHERE labeled = 1 AND (face_embedding IS NOT NULL OR face_gallery IS NOT NULL)"
+        ).fetchall()
+
+    results = []
+    for row in rows:
+        best_score = 0.0
+        gallery = deserialize_gallery(row['face_gallery']) if row['face_gallery'] else []
+        # 如果无图库，回退到旧版单 embedding
+        if not gallery and row['face_embedding']:
+            stored = deserialize_embedding(row['face_embedding'], 512)
+            if stored is not None:
+                best_score = cosine_similarity(query_emb, stored)
+        else:
+            for gallery_emb in gallery:
+                score = cosine_similarity(query_emb, gallery_emb)
+                if score > best_score:
+                    best_score = score
+
+        if best_score >= threshold:
+            results.append((_row_to_dict(row), best_score))
+
+    results.sort(key=lambda x: x[1], reverse=True)
+    return results[:top_n]
+
+
+def update_face_gallery(member_id: str, embeddings: list):
+    """更新成员的 face_gallery"""
+    gallery_json = serialize_gallery(embeddings)
+    with get_connection() as conn:
+        conn.execute(
+            "UPDATE members SET face_gallery = ? WHERE id = ?",
+            (gallery_json, member_id)
+        )
+    logger.debug(f'Face gallery updated for member {member_id[:8]}... ({len(embeddings)} embeddings)')
+
+
+def append_to_face_gallery(member_id: str, embedding: np.ndarray, max_samples: int = 10):
+    """向图库追加一个 embedding（增量扩展）"""
+    with get_connection() as conn:
+        row = conn.execute("SELECT face_gallery FROM members WHERE id = ?", (member_id,)).fetchone()
+    if not row:
+        return
+
+    gallery = deserialize_gallery(row['face_gallery']) if row['face_gallery'] else []
+    # 检查与已有样本的最小距离
+    min_dist = min(
+        (1.0 - cosine_similarity(embedding, g) for g in gallery),
+        default=1.0
+    )
+    if min_dist > 0.2:  # 足够新颖才加入
+        gallery.append(embedding)
+        # 超过上限时移除离群点
+        if len(gallery) > max_samples:
+            mean_emb = np.mean(gallery, axis=0)
+            mean_emb = mean_emb / (np.linalg.norm(mean_emb) or 1.0)
+            distances = [1.0 - cosine_similarity(g, mean_emb) for g in gallery]
+            worst_idx = distances.index(max(distances))
+            gallery.pop(worst_idx)
+        update_face_gallery(member_id, gallery)
+        logger.debug(f'Appended to face gallery for {member_id[:8]}... (total: {len(gallery)})')
+
+
+def audit_face_gallery(member_id: str, min_quality: float = 0.6):
+    """质量审计：移除低质量样本（按与图库均值的距离判断）"""
+    with get_connection() as conn:
+        row = conn.execute("SELECT face_gallery FROM members WHERE id = ?", (member_id,)).fetchone()
+    if not row or not row['face_gallery']:
+        return
+
+    gallery = deserialize_gallery(row['face_gallery'])
+    if len(gallery) <= 2:
+        return  # 样本太少不审计
+
+    mean_emb = np.mean(gallery, axis=0)
+    mean_emb = mean_emb / (np.linalg.norm(mean_emb) or 1.0)
+
+    # 计算每个样本与均值的距离，移除最差的 20%
+    distances = [1.0 - cosine_similarity(g, mean_emb) for g in gallery]
+    threshold_pct = np.percentile(distances, 80)
+    pruned = [g for g, d in zip(gallery, distances) if d <= threshold_pct]
+
+    if len(pruned) < len(gallery):
+        update_face_gallery(member_id, pruned)
+        logger.info(f'Face gallery audited for {member_id[:8]}...: {len(gallery)} -> {len(pruned)}')
 
 
 # ─── 成员 CRUD ─────────────────────────────────────────────

@@ -61,11 +61,13 @@ class CameraPipeline:
         self._no_face_frames = 0  # WR-06: debounce face_lost
         self._last_error_time: dict[str, float] = {}  # WR-07: error debounce
         self._last_embedding_emit_time = 0.0  # WR-09: throttle embedding submissions
+        self._frame_faces_task = None  # asyncio.Task | None: task guard for _on_frame_faces
 
         # 回调
         self._on_face_detected: Callable | None = None
         self._on_face_lost: Callable | None = None
         self._on_face_embedding: Callable | None = None  # Phase 2: embedding 专用回调
+        self._on_frame_faces: Callable | None = None       # 全量人脸帧回调 (PersonTracker + QualityGate)
         self._on_pose_frame: Callable | None = None       # Phase 5: 姿态帧回调
         self._on_error: Callable | None = None
         self._state_provider: Callable | None = None
@@ -90,6 +92,10 @@ class CameraPipeline:
     def set_on_face_embedding(self, callback: Callable):
         """Phase 2: embedding 单独回调（传给融合引擎）"""
         self._on_face_embedding = callback
+
+    def set_on_frame_faces(self, callback: Callable):
+        """全量人脸帧回调（每帧所有人脸数据，供 PersonTracker + QualityGate）"""
+        self._on_frame_faces = callback
 
     def set_on_pose_frame(self, callback: Callable):
         """Phase 5: 姿态帧回调（传给 PoseModule）"""
@@ -265,6 +271,14 @@ class CameraPipeline:
             self._face_detector.close()
             self._face_detector = None
 
+        if self._frame_faces_task:
+            self._frame_faces_task.cancel()
+            try:
+                await self._frame_faces_task
+            except asyncio.CancelledError:
+                pass
+            self._frame_faces_task = None
+
         if self._cap:
             self._cap.release()
             self._cap = None
@@ -340,6 +354,7 @@ class CameraPipeline:
                 current_count = len(faces)
                 if current_count > 0 and self._faces_last_frame == 0:
                     await self._emit_face_detected(faces)
+                    self._no_face_frames = 0
                 elif current_count == 0 and self._faces_last_frame > 0:
                     self._no_face_frames += 1
                     if self._no_face_frames >= 3:  # debounce: 3 consecutive frames
@@ -347,25 +362,38 @@ class CameraPipeline:
                         self._no_face_frames = 0
                 elif current_count > 0:
                     self._no_face_frames = 0
-                    # WR-09: 持续提交 embedding（而非仅在 0→N 事件提交）
-                    # 解决 InsightFace 异步加载竞态：加载完成前 faces 已 > 0，
-                    # _emit_face_detected 已错过，需要在此持续提交
-                    if self._on_face_embedding and self._insightface_ready:
-                        now = time.time()
-                        if now - self._last_embedding_emit_time >= 0.5:  # 限频：500ms
-                            self._last_embedding_emit_time = now
-                            for face in faces:
-                                if 'embedding' in face:
-                                    try:
-                                        emb = np.array(face['embedding'], dtype=np.float32)
-                                        if asyncio.iscoroutinefunction(self._on_face_embedding):
-                                            await self._on_face_embedding(emb, face['confidence'])
-                                        else:
-                                            self._on_face_embedding(emb, face['confidence'])
-                                    except Exception as e:
-                                        logger.debug(f'Embedding submit error: {e}')
 
                 self._faces_last_frame = current_count
+
+                # WR-09: embedding 提交（限频500ms）- 在所有有人脸帧上运行，包括首帧
+                if current_count > 0 and self._on_face_embedding and self._insightface_ready:
+                    now = time.time()
+                    if now - self._last_embedding_emit_time >= 0.5:
+                        self._last_embedding_emit_time = now
+                        for face in faces:
+                            if 'embedding' in face:
+                                try:
+                                    emb = np.array(face['embedding'], dtype=np.float32)
+                                    if asyncio.iscoroutinefunction(self._on_face_embedding):
+                                        await self._on_face_embedding(emb, face['confidence'])
+                                    else:
+                                        self._on_face_embedding(emb, face['confidence'])
+                                except Exception as e:
+                                    logger.debug(f'Embedding submit error: {e}')
+
+                # Frame faces callback (for PersonTracker + QualityGate)
+                # Fire-and-forget with task guard to prevent event-loop accumulation
+                if self._on_frame_faces and faces:
+                    try:
+                        if asyncio.iscoroutinefunction(self._on_frame_faces):
+                            if self._frame_faces_task is None or self._frame_faces_task.done():
+                                self._frame_faces_task = asyncio.create_task(
+                                    self._on_frame_faces(faces, frame_rgb)
+                                )
+                        else:
+                            self._on_frame_faces(faces, frame_rgb)
+                    except Exception as e:
+                        logger.debug(f'Frame faces callback error: {e}')
 
                 # Phase 5: 姿态帧回调（在 Auth/Chat 状态下）
                 if self._on_pose_frame:
@@ -440,12 +468,27 @@ class CameraPipeline:
                     },
                     'confidence': float(face.det_score),
                     'landmarks': [],
+                    'quality_passed': False,
+                    'quality_detail': None,
                 }
+
+                # 提取 landmarks（2D 关键点）
+                if hasattr(face, 'landmark_2d_106') and face.landmark_2d_106 is not None:
+                    face_info['landmarks'] = [
+                        {'x': float(p[0]) / w, 'y': float(p[1]) / h}
+                        for p in face.landmark_2d_106
+                    ]
+                elif hasattr(face, 'kps') and face.kps is not None:
+                    face_info['landmarks'] = [
+                        {'x': float(p[0]) / w, 'y': float(p[1]) / h}
+                        for p in face.kps
+                    ]
 
                 # 质量门控 + embedding 提取
                 if self._check_embedding_quality(face_info, w, h):
                     embedding = face.normed_embedding  # InsightFace 已 L2 归一化
                     face_info['embedding'] = embedding.astype(np.float32).tolist()
+                    face_info['quality_passed'] = True
 
                 faces.append(face_info)
         except Exception as e:

@@ -51,6 +51,10 @@ from src.python.modules.skill_loader.skill_loader import SkillLoader
 # Phase 5 modules
 from src.python.modules.pose.pose_module import PoseModule, GestureEvent
 from src.python.modules.notification import ExternalNotifier
+# Tracking modules (Phase: face recognition stability)
+from src.python.modules.tracking.person_tracker import PersonTracker, Detection
+from src.python.modules.tracking.reid_extractor import ReIDExtractor
+from src.python.modules.tracking.quality_gate import QualityGate
 
 # ─── 日志配置 ───────────────────────────────────────────────
 config = get_config()
@@ -86,6 +90,10 @@ skill_loader: SkillLoader | None = None
 # Phase 5
 pose_module: PoseModule | None = None
 notifier: ExternalNotifier | None = None
+# Tracking modules (Phase: face recognition stability)
+person_tracker: PersonTracker | None = None
+reid_extractor: ReIDExtractor | None = None
+quality_gate: QualityGate | None = None
 connected_clients: set = set()
 _preview_active = False
 _preview_client = None  # 当前请求预览的 websocket 连接
@@ -991,6 +999,7 @@ async def main():
     global stt_module, llm_manager, tts_module, wakefree_manager, visual_detector, conversation
     global multi_person, task_manager, skill_loader
     global pose_module
+    global person_tracker, reid_extractor, quality_gate
 
     logger.info('=== Frank Inference Service Starting (Phase 5) ===')
 
@@ -1008,6 +1017,41 @@ async def main():
     fusion_engine.set_on_identity_changing(on_identity_changing)
     fusion_engine.set_on_identity_unknown(on_identity_unknown)
     await fusion_engine.start()
+
+    # 初始化跟踪模块
+    reid_extractor = ReIDExtractor()
+    person_tracker = PersonTracker(reid_extractor=reid_extractor)
+    quality_gate = QualityGate()
+
+    # 连接 fusion_engine -> person_tracker 身份绑定回调
+    def on_identity_recognized(data: dict):
+        """融合引擎识别到身份时，通知 PersonTracker 绑定身份槽位"""
+        # 从当前活跃 track 中找到最近的人脸匹配
+        active_tracks = person_tracker.get_active_tracks()
+        for track in active_tracks:
+            if track.last_face_embedding is not None and track.state.value == 'active':
+                mid = data.get('member_id')
+                if mid is None:
+                    continue
+                person_tracker.bind_identity(
+                    track_id=track.track_id,
+                    member_id=mid,
+                    display_name=data.get('display_name', ''),
+                    score=data.get('face_score', data.get('confidence', 0.0)),
+                )
+                break  # 绑定到第一个活跃 track
+
+    fusion_engine.set_on_identity_recognized(on_identity_recognized)
+
+    # 设置 PersonTracker 事件回调（转发为系统事件）
+    def on_track_identity_bind(info: dict):
+        logger.info(f'Track {info["track_id"]} bound to member {info.get("display_name", info["member_id"])}')
+
+    def on_track_identity_switch(info: dict):
+        logger.info(f'Track {info["track_id"]} identity switch: {info.get("from")} -> {info.get("to")}')
+
+    person_tracker.set_on_identity_bind(on_track_identity_bind)
+    person_tracker.set_on_identity_switch(on_track_identity_switch)
 
     # 初始化状态机
     state_machine = StateMachine(config=config.get('state_machine', {}))
@@ -1102,6 +1146,47 @@ async def main():
     camera_pipeline.set_on_pose_frame(on_pose_frame)  # Phase 5
     camera_pipeline.set_on_error(on_camera_error)
     camera_pipeline.set_state_provider(state_machine.get_current_state)
+
+    # 人脸帧回调：驱动 PersonTracker + QualityGate
+    async def on_frame_faces(faces: list[dict], frame: np.ndarray):
+        """每帧所有人脸 → QualityGate → Detection → PersonTracker"""
+        global person_tracker, quality_gate
+        if not person_tracker or not quality_gate:
+            return
+
+        try:
+            h, w = frame.shape[:2]
+            detections = []
+
+            for face in faces:
+                bbox_data = face.get('bbox', {})
+                bbox = (
+                    bbox_data.get('x', 0),
+                    bbox_data.get('y', 0),
+                    bbox_data.get('width', 0),
+                    bbox_data.get('height', 0),
+                )
+
+                # Quality gate evaluation
+                quality_result = quality_gate.evaluate(face, frame, w, h)
+
+                # Build Detection
+                det = Detection(
+                    bbox=bbox,
+                    confidence=face.get('confidence', 0.0),
+                    face_embedding=np.array(face['embedding'], dtype=np.float32) if 'embedding' in face else None,
+                    face_landmarks=face.get('landmarks', []),
+                    face_quality=quality_result,
+                )
+                detections.append(det)
+
+            # Update PersonTracker
+            if detections:
+                identities = person_tracker.update(detections, frame)
+        except Exception as e:
+            logger.error(f'on_frame_faces task error: {e}')
+
+    camera_pipeline.set_on_frame_faces(on_frame_faces)
 
     # 预览推送回调
     async def on_preview_frame(data):
@@ -1221,6 +1306,8 @@ async def main():
 
     # 清理
     logger.info('Shutting down...')
+    if person_tracker:
+        person_tracker.reset()
     if fusion_engine:
         await fusion_engine.stop()
     if camera_pipeline:
