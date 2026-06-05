@@ -826,7 +826,8 @@ function submitIdentify() {
   }
 
   closeIdentifyDialog();
-  setTimeout(() => { loadPersonaPanel(); refreshMemberPanel(); }, 500);
+  // 注意：loadPersonaPanel/refreshMemberPanel 由 member.identified / member.updated
+  // 的 IPC 回调负责触发（onMemberRegistered / onMemberUpdated），无需在此 setTimeout
 }
 
 // Dialog button wiring

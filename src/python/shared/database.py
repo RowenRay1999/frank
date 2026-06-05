@@ -31,7 +31,7 @@ DEFAULT_DB_PATH = PROJECT_ROOT / 'data' / 'frank.db'
 SCHEMA_VERSION = 5
 
 # 线程锁（SQLite 单写多读模式）
-_db_lock = threading.Lock()
+_db_lock = threading.RLock()
 
 
 def get_db_path() -> Path:
@@ -848,7 +848,13 @@ def cleanup_unidentified(days_threshold: int = 30, min_appearances: int = 5):
 
 
 def convert_to_member(unidentified_id: str, display_name: str, role: str = 'guest') -> str:
-    """将未标识人物转换为已标识成员（转移所有关联数据）"""
+    """将未标识人物转换为已标识成员（转移所有关联数据）
+
+    注意：所有操作在单一连接+事务内完成，确保原子性。
+    不使用 add_member() 以避免嵌套 get_connection() 导致 _db_lock 死锁。
+    """
+    import uuid
+
     with get_connection() as conn:
         row = conn.execute(
             "SELECT * FROM unidentified WHERE id = ?", (unidentified_id,)
@@ -857,15 +863,18 @@ def convert_to_member(unidentified_id: str, display_name: str, role: str = 'gues
         if not row:
             raise ValueError(f'Unidentified person {unidentified_id} not found')
 
-        # 创建成员
-        member_id = add_member(
-            display_name=display_name,
-            role=role,
-            face_emb=deserialize_embedding(row['face_embedding'], 512),
-            voice_emb=deserialize_embedding(row['voice_embedding'], 192),
-            typical_distance=row['typical_distance_cm'],
-            labeled=True,
-        )
+        # 内联创建成员（使用当前连接，避免嵌套锁）
+        member_id = str(uuid.uuid4())
+        conn.execute("""
+            INSERT INTO members (id, display_name, role, face_embedding,
+                   typical_distance_cm, voice_embedding, labeled)
+            VALUES (?, ?, ?, ?, ?, ?, 1)
+        """, (
+            member_id, display_name, role,
+            row['face_embedding'],  # 直接使用原始 BLOB，无需反序列化再序列化
+            row['typical_distance_cm'],
+            row['voice_embedding'],
+        ))
 
         # 转移附加数据：缩略图、声纹频谱、出现统计、时间戳
         columns = [c[1] for c in conn.execute("PRAGMA table_info(unidentified)").fetchall()]
@@ -892,8 +901,8 @@ def convert_to_member(unidentified_id: str, display_name: str, role: str = 'gues
         # 删除未标识记录
         conn.execute("DELETE FROM unidentified WHERE id = ?", (unidentified_id,))
 
-    logger.info(f'Converted {unidentified_id[:8]}... → member {display_name} ({member_id[:8]}...)')
-    return member_id
+        logger.info(f'Converted {unidentified_id[:8]}... → member {display_name} ({member_id[:8]}...)')
+        return member_id
 
 
 # ─── 工具 ──────────────────────────────────────────────────
